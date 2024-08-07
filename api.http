@@ -1,0 +1,485 @@
+@hostJob = http://192.168.3.16:7000
+@hostHome = http://192.168.1.14:7000
+
+
+
+@host = {{hostJob}}
+
+@email = "admin@admin.ru"
+@password = "admin"
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGFkbWluLnJ1IiwiaWQiOjEsInJvbGVzIjpbeyJpZCI6MSwibmFtZSI6ImFkbWluIiwiZGVzY3JpcHRpb24iOiLQkNC00LzQuNC90LjRgdGC0YDQsNGC0L7RgCIsImRlbGV0ZWRBdCI6bnVsbCwiY3JlYXRlZEF0IjoiMjAyMy0xMC0wNlQxMzoxMDoxMi4wMDBaIiwidXBkYXRlZEF0IjoiMjAyMy0xMC0wNlQxMzoxMDoxMi4wMDBaIn1dLCJiYW5uZWQiOmZhbHNlLCJpYXQiOjE2OTY4Mjg1NzIsImV4cCI6MTY5Njg2NDU3Mn0.sS-OW9LeDCOqKO1V4MU6HbEytoz1qjRQrOTQKdYbTLk
+
+
+### ----- Roles
+### Получение всех ролей
+GET {{host}}/roles HTTP/1.1
+
+### Получения ролей одного пользователя
+GET {{host}}/roles/user/3 HTTP/1.1
+
+
+### Получения ролей одного пользователя
+POST {{host}}/roles/ HTTP/1.1
+
+
+
+### ------ Еденицы измерения ---------------------------------------------------------------------
+### Получение едениц измерения
+GET {{host}}/unit HTTP/1.1
+
+
+### Получение наименования едениц измерения
+GET {{host}}/unit/getName/1 HTTP/1.1
+
+####
+POST {{host}}/unit HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "шт",
+    "description": "Штуки"
+}
+
+###
+
+####
+POST {{host}}/unit HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "м",
+    "description": "Метры"
+}
+
+####
+POST {{host}}/unit HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "м2",
+    "description": "м2"
+}
+####
+POST {{host}}/unit HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "м/п",
+    "description": "м/п"
+}
+####
+POST {{host}}/unit HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "кг",
+    "description": "кг"
+}
+####
+POST {{host}}/unit HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "м3",
+    "description": "м3"
+}
+####
+POST {{host}}/unit HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "комплект",
+    "description": "комплект"
+}
+###
+
+
+
+
+
+### ------ Тип работ (TypeWork) ---------------------------------------------------------------
+### Получение типа работ
+GET {{host}}/type-work HTTP/1.1
+
+### Получение типа работ
+GET {{host}}/type-work/short HTTP/1.1
+
+### Создание типа работ
+POST {{host}}/type-work HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "АСКУЭ",
+    "description": "Автоматизированная система"
+}
+###
+POST {{host}}/type-work HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "Водоснабжение",
+    "description": "Водоснабжение"
+}
+###
+POST {{host}}/type-work HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "Канализация",
+    "description": "Канализация"
+}
+###
+POST {{host}}/type-work HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "Вентиляция",
+    "description": "Вентиляция"
+}
+###
+POST {{host}}/type-work HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "Отопление",
+    "description": "Отопление"
+}
+
+###
+POST {{host}}/type-work HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "ИТП",
+    "description": "ИТП"
+}
+###
+POST {{host}}/type-work HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "Другое",
+    "description": "Другое"
+}
+###
+POST {{host}}/type-work HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "Кондиционирование",
+    "description": "Кондиционирование"
+}
+### 
+
+### ------ Auth ---------------------------------------------------------------
+
+### Регистрация
+POST {{host}}/auth/registration HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "email": "test_1@email.ru",
+    "password": "1234",
+    "firstname": "Иван",
+    "lastname": "Иванов"
+}
+
+###
+POST {{host}}/auth/registration HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "email": "test_2@email.ru",
+    "password": "1234",
+    "firstname": "Фёдор",
+    "lastname": "Синицын"
+}
+###
+POST {{host}}/auth/registration HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "email": "test_3@email.ru",
+    "password": "1234",
+    "firstname": "Степан",
+    "lastname": "Кружкин"
+}
+###
+
+POST {{host}}/auth/registration HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "email": "dev@email.ru",
+    "password": "1234",
+    "firstname": "Dev",
+    "lastname": "Dev"
+}
+###
+
+### Edit
+POST {{host}}/auth/edit HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "userId": "4",
+    "email": "test_3@email.ru",
+    "password": "12345",
+    "banned": true,
+    "firstName": "Степа",
+    "lastName": "Кружин"
+
+}
+### Авторизация
+POST {{host}}/auth/login HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "email": {{email}},
+    "password": {{password}}
+}
+### Check
+GET {{host}}/auth/check HTTP/1.1
+Authorization: Bearer {{token}}
+
+
+ 
+
+### ------ User ---------------------------------------------------------------
+### Получение объектов
+GET {{host}}/user HTTP/1.1
+//Authorization: Bearer {{token}}
+
+
+### Получение объектов
+GET {{host}}/user/objectsUser/2 HTTP/1.1
+//Authorization: Bearer {{token}}
+
+
+### Получение объёмов
+GET {{host}}/user/scopeWorkUser/2 HTTP/1.1
+
+
+
+### ------ Объекты ---------------------------------------------------------
+### Получение объектов
+GET {{host}}/objects HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+GET {{host}}/objects/shortData HTTP/1.1
+Authorization: Bearer {{token}}
+
+### Создание объекта
+POST {{host}}/objects HTTP/1.1
+Authorization: Bearer {{token}}
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "Зеландия",
+    "address": "г. Пенза"
+}
+
+###
+
+POST {{host}}/objects HTTP/1.1
+Authorization: Bearer {{token}}
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "Континент",
+    "address": "г. Пенза"
+}
+
+###
+POST {{host}}/objects HTTP/1.1
+Authorization: Bearer {{token}}
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "Лугометрия",
+    "address": "г. Пенза"
+}
+
+### ------ Наименования работ ---------------------------------------------------------------
+### Получение наименований
+GET {{host}}/name-work HTTP/1.1
+
+### Получение наименований
+GET {{host}}/name-work/getAll HTTP/1.1
+
+
+
+### Получение наименований по типу
+GET {{host}}/name-work/byTypeWork/?typeWorkId=2 HTTP/1.1
+
+### Создание наименования
+POST {{host}}/name-work HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "Труба",
+    "unitId": 2,
+    "typeWorkId": 4
+}
+
+
+### Создание нескольких типов
+POST {{host}}/name-work HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "Тест",
+    "unitId": 2,
+    "typeWorkId": [1, 2]
+}
+
+### Создание из массива
+POST {{host}}/name-work/arr HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+[{"name":"Кабель силовой ВВГ 2х2,5","typeWork":"АСКУЭ","unit":"шт","key":"1","state":""},{"name":"КСВВнг 2х2х0,97","typeWork":"АСКУЭ","unit":"шт","key":"2","state":""}]
+    
+
+
+
+### Получить один по id
+
+GET {{host}}/name-work/1 HTTP/1.1
+###
+
+### ------ Пользователи ---------------------------------------------------------
+### Получение всех пользователей
+GET {{host}}/user HTTP/1.1
+Authorization: Bearer {{token}}
+
+
+
+### ------ Объём работ ---------------------------------------------------------
+### Получение всех объёмов
+GET {{host}}/scope-work HTTP/1.1
+
+### Получение одного
+GET {{host}}/scope-work/getAllByUserId/1 HTTP/1.1
+
+### Получение одного
+GET {{host}}/scope-work/getListByScopeWorkId/1 HTTP/1.1
+
+### Получение всех для пользователя
+GET {{host}}/scope-work/10 HTTP/1.1
+
+### Создание объёма
+POST {{host}}/scope-work HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "typeWorkId": 1,
+    "listNameWork": [1],
+    "objectId": 1,
+    "users": [1, 2 ,3]
+}
+
+
+
+### ------ Наименование списка работ ---------------------------------------------------------
+### Получение всех 
+GET {{host}}/list-name-work HTTP/1.1
+
+###
+
+### Получение всех по типу работ 
+GET {{host}}/list-name-work/byTypeWork/2 HTTP/1.1
+
+###
+
+
+### Получение одного 
+GET {{host}}/list-name-work/1 HTTP/1.1
+
+
+
+### Создание списка
+POST {{host}}/list-name-work HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "name": "Тестовый список",
+    "typeWorkId": 1
+}
+###
+
+### Удаление
+DELETE {{host}}/list-name-work/del/10 HTTP/1.1
+
+###
+
+### Копирование одного 
+GET {{host}}/list-name-work/copy/9 HTTP/1.1 
+
+###
+
+### Получение прогресса для одного списка
+GET {{host}}/list-name-work/getProgressForOneList/15 HTTP/1.1 
+
+###
+
+
+
+// -------------- Связная таблица для наименования, количества и наименования списка
+### Получение всех
+
+GET {{host}}/name-list HTTP/1.1
+
+###
+
+// Создание 
+POST {{host}}/name-list HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "quntity": 10,
+    "nameWorkId": 5,
+    "listNameWorkId": 1
+}
+
+
+### Получение данных для одного
+
+GET {{host}}/name-list/getDateForOne/?nameWorkId=1&listId=1 HTTP/1.1
+
+###
+
+### Получение данных для одного
+
+GET {{host}}/name-list/getDataProgressByList/?listId=1&scopeWorkId=1 HTTP/1.1
+
+###
+
+// --------------------------table-adding-data ----------
+
+### Получение всех
+
+GET {{host}}/table-adding-data HTTP/1.1
+
+### Create
+POST {{host}}/table-adding-data HTTP/1.1
+Content-type: application/json; charset=utf-8
+
+{
+    "quntity": 1,
+  "nameWorkId": 1,
+  "nameListId": 1,
+  "scopeWorkId": 1,
+  "userId": 2
+}
+
+###
+
+GET {{host}}/table-adding-data/historyForName/?nameListId=288&nameWorkId=290&scopeWorkId=4
+
+###
+PATCH {{host}}/table-adding-data/remove/179
+
+
+###
+PATCH {{host}}/table-adding-data/recovery/179
