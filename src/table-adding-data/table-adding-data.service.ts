@@ -8,7 +8,6 @@ import { UnitService } from 'src/unit/unit.service';
 import { CreateDelTableDto } from './dto/create-deltable.dto';
 import { CreateTableAddingDatumDto } from './dto/create-table-adding-datum.dto';
 import { GetAllByDto } from './dto/get-all-by.dto';
-import { UpdateTableAddingDatumDto } from './dto/update-table-adding-datum.dto';
 import { DelTableAddingData } from './entities/del-table-adding-data.model';
 import { TableAddingData } from './entities/table-adding-data.model';
 import { IDataGetHistoryForNameWorkId } from './interfaces/IDataGetHistoryForNameWorkId';
@@ -182,13 +181,13 @@ export class TableAddingDataService {
                       dateFrom.split('-')[1]
                   }-${dayPlusOne}`
                 : `${year}-${monthFrom}-${Number(dayPlusOne)}`;
-            const finishDateFromPlusOne = dateFrom
-                ? dateFrom
-                : `${year}-${monthFrom}-${Number(day)}`;
+            // const finishDateFromPlusOne = dateFrom
+            //     ? dateFrom
+            //     : `${year}-${monthFrom}-${Number(day)}`;
             const finishDateTo = dateTo ? dateTo : `${year}-${monthTo}-${day}`;
-            const finishDateTest = dateFrom
-                ? dateFrom
-                : `${year}-${monthFrom}-${Number(day) - 1}`;
+            // const finishDateTest = dateFrom
+            //     ? dateFrom
+            //     : `${year}-${monthFrom}-${Number(day) - 1}`;
             console.log(dateFrom, dateTo);
             console.log(finishDateFrom, finishDateTo);
 
@@ -240,7 +239,7 @@ export class TableAddingDataService {
                     organizationId,
                 );
                 const nameWork = oneNameWork.name;
-                const finishDate = createdAt.toString().split('T')[0];
+                // const finishDate = createdAt.toString().split('T')[0];
 
                 const unitName = await this.unitService.getOneUnitBy(
                     { criteria: { id: oneNameWork.unitId }, relations: [] },
@@ -362,7 +361,7 @@ export class TableAddingDataService {
      * @deprecated This method is deprecated and will be removed in the future.
      * Please use newMethod instead.
      */
-    update(id: number, updateTableAddingDatumDto: UpdateTableAddingDatumDto) {
+    update(id: number) {
         return `This action updates a #${id} tableAddingDatum`;
     }
 
@@ -522,14 +521,14 @@ export class TableAddingDataService {
             const replacements = {
                 idDelCandidate,
             };
-            const data =
-                await this.delTableAddingDataRepository.sequelize.query(
-                    queryConfirmDel,
-                    {
-                        type: QueryTypes.UPDATE,
-                        replacements,
-                    },
-                );
+
+            await this.delTableAddingDataRepository.sequelize.query(
+                queryConfirmDel,
+                {
+                    type: QueryTypes.UPDATE,
+                    replacements,
+                },
+            );
 
             return removeData;
         } catch (e) {

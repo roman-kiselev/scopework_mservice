@@ -7,7 +7,7 @@ async function bootstrap() {
     const PORT = process.env.PORT || 4000;
     const app = await NestFactory.create(AppModule);
     app.enableCors();
-    const microcervice = app.connectMicroservice<MicroserviceOptions>({
+    app.connectMicroservice<MicroserviceOptions>({
         transport: Transport.RMQ,
         options: {
             urls: ['amqp://localhost:5672'],

@@ -408,8 +408,7 @@ export class ListNameWorkService {
         return copiedList;
     }
 
-    // TODO Нужно реализовать метод
-    async getProgressForOneList(id: number) {}
+    // TODO Нужно реализовать метод async getProgressForOneList(id: number) {}
 
     // ------------------------------------------------//
 

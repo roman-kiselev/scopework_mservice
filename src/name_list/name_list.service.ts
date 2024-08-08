@@ -8,13 +8,9 @@ import {
     Injectable,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { NameWork } from 'src/name-work/entities/name-work.model';
 import { NameWorkService } from 'src/name-work/name-work.service';
 import { TableAddingDataService } from 'src/table-adding-data/table-adding-data.service';
-import {
-    CreateNameListByNameDto,
-    Item,
-} from './dto/create/create-name-list-by-name.dto';
+import { CreateNameListByNameDto } from './dto/create/create-name-list-by-name.dto';
 import { CreateNameListDto } from './dto/create/create-name-list.dto';
 
 import { ListNameWorkService } from 'src/list-name-work/list-name-work.service';
@@ -221,7 +217,7 @@ export class NameListService {
             // Проверяем существование наименований по типам
             const checkList = Promise.all(
                 list.map(async (item) => {
-                    const { id, name, quntity } = item;
+                    const { id, quntity } = item;
 
                     const newPosition = await this.create({
                         listNameWorkId,
@@ -272,28 +268,18 @@ export class NameListService {
      * @deprecated This method is deprecated and will be removed in the future.
      * Please use newMethod instead.
      */
-    async editList(data: { dataNameWorks: NameWork[]; list: Item[] }) {
-        try {
-            const { dataNameWorks, list } = data;
-            const findedListWork = await this.nameListRepository;
-            // const newList = Promise.all(
-            //   list.map(async (nameWork) => {
-            //     const { id, name, quntity } = nameWork;
-            //     const findName = dataNameWorks.find((name) => name.id === id);
-            //     if (findName) {
-            //       const newquntity = await this.nameListRepository.findByPk(findName)
-            //     }
-            //   }),
-            // );
-        } catch (e) {
-            if (e instanceof HttpException) {
-                throw e;
-            }
-            throw new HttpException(
-                'Ошибка сервера',
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-        }
+    async editList() {
+        // const { dataNameWorks, list } = data;
+        // const findedListWork = await this.nameListRepository;
+        // const newList = Promise.all(
+        //   list.map(async (nameWork) => {
+        //     const { id, name, quntity } = nameWork;
+        //     const findName = dataNameWorks.find((name) => name.id === id);
+        //     if (findName) {
+        //       const newquntity = await this.nameListRepository.findByPk(findName)
+        //     }
+        //   }),
+        // );
     }
 
     /**
@@ -398,7 +384,7 @@ export class NameListService {
             organizationId,
         );
 
-        let dataList: GetDataProgressByListResponseDto[] = [];
+        const dataList: GetDataProgressByListResponseDto[] = [];
 
         // Теперь получаем quntity и nameWorkId для получения изменений по этип спискам
         for (const list of listArr) {
@@ -470,5 +456,5 @@ export class NameListService {
      * Please use newMethod instead.
      */
     // Создаём список из excel документа
-    async createListExcel(data: Item[]) {}
+    // async createListExcel() {}
 }
