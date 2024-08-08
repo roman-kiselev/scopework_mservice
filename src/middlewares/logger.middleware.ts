@@ -4,7 +4,6 @@ import { NextFunction, Request, Response } from 'express';
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {
     logger = new Logger('Response');
-    constructor() {}
 
     use(req: Request, res: Response, next: NextFunction) {
         const reqTime = new Date().getTime();

@@ -216,7 +216,7 @@ export class ScopeWorkService {
      * Please use newMethod instead.
      */
     private async _getDataCount(arr: ScopeWork[], organizationId: number) {
-        let dataProgress = [];
+        const dataProgress = [];
 
         for (const scopeWork of arr) {
             const { id: idScopeWork, listNameWork } = scopeWork;
@@ -617,7 +617,7 @@ export class ScopeWorkService {
             throw new NotFoundException('ScopeWork not found');
         }
 
-        let findListPromises = listNameWork.map((item) => {
+        const findListPromises = listNameWork.map((item) => {
             return this.listNameWorkService.getOneBy(
                 {
                     criteria: { id: item.id },
@@ -835,12 +835,7 @@ export class ScopeWorkService {
             const { nameWorks } = oneList;
             const finishNameWorks = JSON.parse(JSON.stringify(nameWorks));
 
-            for (const {
-                id: nameWorkId,
-                name,
-                unitId,
-                NameList,
-            } of finishNameWorks) {
+            for (const { id: nameWorkId, name, unitId } of finishNameWorks) {
                 const findedData =
                     await this.nameListService.getDataByNameWorkIdAndListId(
                         nameWorkId,
@@ -870,7 +865,7 @@ export class ScopeWorkService {
      */
     // Редактировать объём
     async editScopeWork(dto: EditScopeWorkDto) {
-        const { listNameWork, objectId, typeWorkId, users, scopeWorkId } = dto;
+        const { listNameWork, users, scopeWorkId } = dto;
         const scopeWork = await this.scopeWorkRepository.findByPk(scopeWorkId);
 
         // const arr = await this.editArrUsers(users, scopeWorkId);
@@ -889,47 +884,6 @@ export class ScopeWorkService {
      * Please use newMethod instead.
      */
     async getAllScopeWorkSqlShort(id: string, organizationId: number) {
-        const query = `
-      SELECT 
-      sw.id,
-      sw.deletedAt,
-      tw.name as nameTypework,
-      obj.name AS nameObject ,
-      SUM(sumSw.t1Quntity) AS sum,
-      SUM(sumSw.t2Quntity) AS sumCurrent,
-      ROUND(sumSw.t2Quntity / sumSw.t1Quntity * 100, 2) as percent
-  FROM
-      scopework.scope_work AS sw
-          INNER JOIN
-      (SELECT 
-          scopework.\`scope_work\`.id AS scope_workId,
-              SUM(t1.quntity) AS t1Quntity,
-              SUM(t2.quntitySum) AS t2Quntity
-      FROM
-          scopework.\`scope_work\`
-      LEFT JOIN scopework.\`list_name_work\` lnw ON lnw.scopeWorkId = scopework.\`scope_work\`.id
-      LEFT JOIN (SELECT 
-          listNameWorkId, ROUND(SUM(quntity), 1) AS quntity
-      FROM
-          scopework.\`name-list\`
-      GROUP BY scopework.\`name-list\`.listNameWorkId) t1 ON t1.listNameWorkId = lnw.id
-      LEFT JOIN (SELECT 
-          SUM(tad.quntity) AS quntitySum,
-              nl.listNameWorkId AS listNameWorkId
-      FROM
-          scopework.\`table-adding-data\` tad
-      LEFT JOIN scopework.\`name-list\` nl ON nl.id = tad.nameListId
-      WHERE
-          tad.deletedAt IS NULL
-      GROUP BY listNameWorkId) t2 ON t2.listNameWorkId = lnw.id
-      GROUP BY scopework.\`scope_work\`.id) sumSw ON sumSw.scope_workId = sw.id
-          INNER JOIN
-      scopework.type_work tw ON tw.id = sw.typeWorkId
-          INNER JOIN
-      scopework.objects obj ON obj.id = sw.objectId
-  GROUP BY id; 
-      `;
-
         const query2 = `
       SELECT 
       sw.id,

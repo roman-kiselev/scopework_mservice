@@ -153,7 +153,7 @@ export class NameWorkService {
             organizationId,
         });
 
-        const { promisesResolve, promisesReject } =
+        const { promisesResolve } =
             await this.typeWorkService.checkTypeWorksByIds(
                 dto.typeWorkId,
                 organizationId,

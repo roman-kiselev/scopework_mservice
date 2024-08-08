@@ -500,7 +500,7 @@ export class ObjectsService {
                     usersId,
                 );
 
-            let finishUserAddingMain: any[] = [];
+            const finishUserAddingMain: any[] = [];
             const usersIdSet = new Set<number>();
 
             listNamesWithData.forEach(({ finishUserAdding }) => {
@@ -635,7 +635,7 @@ export class ObjectsService {
                 countTableAddingDataObject + countTableAddingData;
         }
         // Теперь нужно избавиться от повторов в mainListUserWithRepeats
-        let uniqueUserId = [
+        const uniqueUserId = [
             ...new Set(mainListUserWithRepeats.map((item) => item.userId)),
         ];
         let mainListUserNoRepetitions = [];

@@ -10,7 +10,6 @@ import { Request, Response } from 'express';
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
     logger = new Logger();
-    constructor() {}
 
     catch(exception: HttpException, host: ArgumentsHost) {
         const ctx = host.switchToHttp();
