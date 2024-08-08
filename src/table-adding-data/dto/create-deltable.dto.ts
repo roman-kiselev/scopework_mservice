@@ -1,4 +1,4 @@
 export class CreateDelTableDto {
-  tableAddingDataId: number;
-  userId: number;
+    tableAddingDataId: number;
+    userId: number;
 }

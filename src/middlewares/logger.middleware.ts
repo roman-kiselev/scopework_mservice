@@ -23,7 +23,11 @@ export class LoggerMiddleware implements NestMiddleware {
     private logRequest(req: Request, res: Response, reqTime: number) {
         const { method, url, body, params, query, cookies } = req;
         const { statusCode: resStatusCode } = res;
-        const log = `${method} ${url} StatusCode-${resStatusCode} ${new Date().getTime() - reqTime}ms Params-${JSON.stringify(params)} Query-${JSON.stringify(query)} Body-${JSON.stringify(body)} Cookies-${JSON.stringify(cookies)}`;
+        const log = `${method} ${url} StatusCode-${resStatusCode} ${
+            new Date().getTime() - reqTime
+        }ms Params-${JSON.stringify(params)} Query-${JSON.stringify(
+            query,
+        )} Body-${JSON.stringify(body)} Cookies-${JSON.stringify(cookies)}`;
 
         if (resStatusCode < 400) {
             this.logger.log(log);
@@ -37,7 +41,9 @@ export class LoggerMiddleware implements NestMiddleware {
 
         if (statusCode === 201 || statusCode === 200) {
             this.logger.log(
-                `${method} ${url} StatusCode-${statusCode} - ${resTime - reqTime}ms`,
+                `${method} ${url} StatusCode-${statusCode} - ${
+                    resTime - reqTime
+                }ms`,
             );
         }
     }

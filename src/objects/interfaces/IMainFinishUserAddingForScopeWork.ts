@@ -1,5 +1,5 @@
 export interface IMainFinishUserAddingForScopeWork {
-  quntity: string;
-  percent: string;
-  userId: number;
+    quntity: string;
+    percent: string;
+    userId: number;
 }
