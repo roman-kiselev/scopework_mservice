@@ -6,11 +6,16 @@ import { AppModule } from './app.module';
 async function bootstrap() {
     const PORT = process.env.PORT || 4000;
     const app = await NestFactory.create(AppModule);
-    app.enableCors();
+    app.enableCors({
+        origin: ['http://192.168.3.60:3000', 'http://localhost:3000'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Укажите необходимые методы
+        allowedHeaders: ['Content-Type', 'Authorization'], // Укажите допустимые заголовки
+        credentials: true,
+    });
     app.connectMicroservice<MicroserviceOptions>({
         transport: Transport.RMQ,
         options: {
-            urls: ['amqp://localhost:5672'],
+            urls: [`${process.env.RABBIT_LINK}`],
             queue: 'scopework_queue',
             queueOptions: {
                 durable: true,

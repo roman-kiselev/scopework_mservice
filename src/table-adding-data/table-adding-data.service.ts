@@ -361,14 +361,6 @@ export class TableAddingDataService {
      * @deprecated This method is deprecated and will be removed in the future.
      * Please use newMethod instead.
      */
-    update(id: number) {
-        return `This action updates a #${id} tableAddingDatum`;
-    }
-
-    /**
-     * @deprecated This method is deprecated and will be removed in the future.
-     * Please use newMethod instead.
-     */
     async remove(id: number) {
         try {
             const querySelect = `

@@ -12,7 +12,6 @@ import { ActiveUser } from 'src/iam/decorators/active-user.decorator';
 import { ActiveUserData } from 'src/iam/interfaces/active-user-data.interface';
 import { CreateDelTableDto } from './dto/create-deltable.dto';
 import { CreateTableAddingDatumDto } from './dto/create-table-adding-datum.dto';
-import { UpdateTableAddingDatumDto } from './dto/update-table-adding-datum.dto';
 import { TableAddingDataService } from './table-adding-data.service';
 
 @ApiTags('Table Adding Data')
@@ -78,16 +77,17 @@ export class TableAddingDataController {
         return this.tableAddingDataService.createCandidateDel(dto);
     }
 
-    @Patch(':id')
-    update(
-        @Param('id') id: string,
-        @Body() updateTableAddingDatumDto: UpdateTableAddingDatumDto,
-    ) {
-        return this.tableAddingDataService.update(
-            +id,
-            updateTableAddingDatumDto,
-        );
-    }
+    // TODO внести изменения
+    // @Patch(':id')
+    // update(
+    //     @Param('id') id: string,
+    //     @Body() updateTableAddingDatumDto: UpdateTableAddingDatumDto,
+    // ) {
+    //     return this.tableAddingDataService.update(
+    //         +id,
+    //         updateTableAddingDatumDto,
+    //     );
+    // }
 
     @Patch('/remove/:id')
     remove(@Param('id') id: string) {
