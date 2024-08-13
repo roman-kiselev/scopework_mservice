@@ -315,11 +315,11 @@ export class TableAddingDataService {
       \`table-adding-data\`.deletedAt,
       \`del_table_adding_data\`.id AS \`delCandidate\`
   FROM
-      scopework.\`table-adding-data\`
+      ${process.env.MYSQL_DATABASE}.\`table-adding-data\`
           INNER JOIN
-      \`user-description\` ON \`user-description\`.userId = scopework.\`table-adding-data\`.userId
+      \`user-description\` ON \`user-description\`.userId = ${process.env.MYSQL_DATABASE}.\`table-adding-data\`.userId
           LEFT JOIN
-      \`del_table_adding_data\` ON \`del_table_adding_data\`.tableAddingDataId = scopework.\`table-adding-data\`.id
+      \`del_table_adding_data\` ON \`del_table_adding_data\`.tableAddingDataId = ${process.env.MYSQL_DATABASE}.\`table-adding-data\`.id
           AND \`del_table_adding_data\`.deletedAt IS NULL
   WHERE
               nameWorkId = :nameWorkId AND nameListId = :nameListId
@@ -367,12 +367,12 @@ export class TableAddingDataService {
       SELECT 
           *
       FROM
-          scopework.\`table-adding-data\`
+          ${process.env.MYSQL_DATABASE}.\`table-adding-data\`
       WHERE
           id = :id;`;
 
             const queryUpdateRemove = `
-      UPDATE scopework.\`table-adding-data\` 
+      UPDATE ${process.env.MYSQL_DATABASE}.\`table-adding-data\` 
       SET 
           deletedAt = CURRENT_TIMESTAMP
       WHERE
@@ -423,12 +423,12 @@ export class TableAddingDataService {
       SELECT 
           *
       FROM
-          scopework.\`table-adding-data\`
+          ${process.env.MYSQL_DATABASE}.\`table-adding-data\`
       WHERE
           id = :id;`;
 
             const queryUpdateRemove = `
-      UPDATE scopework.\`table-adding-data\` 
+      UPDATE ${process.env.MYSQL_DATABASE}.\`table-adding-data\` 
       SET 
           deletedAt = null
       WHERE
@@ -503,7 +503,7 @@ export class TableAddingDataService {
         try {
             const removeData = await this.remove(tableAddingDataId);
             const queryConfirmDel = `
-      UPDATE scopework.\`del_table_adding_data\` 
+      UPDATE ${process.env.MYSQL_DATABASE}.\`del_table_adding_data\` 
       SET 
           deletedAt = CURRENT_TIMESTAMP
       WHERE
