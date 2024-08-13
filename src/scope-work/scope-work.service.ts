@@ -895,7 +895,7 @@ export class ScopeWorkService {
       sw.percent,
       sw.organizationId
   FROM
-      ${process.env.MYSQL_DATABASE}.\`user-scope-work\` usw
+      \`${process.env.MYSQL_DATABASE}\`.\`user-scope-work\` usw
           INNER JOIN
       (SELECT 
               sw.id,
@@ -907,31 +907,31 @@ export class ScopeWorkService {
               SUM(sumSw.t2Quntity) AS sumCurrent,
               ROUND(sumSw.t2Quntity / sumSw.t1Quntity * 100, 1) AS percent
       FROM
-          ${process.env.MYSQL_DATABASE}.scope_work AS sw
+          \`${process.env.MYSQL_DATABASE}\`.scope_work AS sw
       LEFT JOIN (SELECT 
-          ${process.env.MYSQL_DATABASE}.\`scope_work\`.id AS scope_workId,
+         \`${process.env.MYSQL_DATABASE}\`.\`scope_work\`.id AS scope_workId,
               SUM(t1.quntity) AS t1Quntity,
               SUM(t2.quntitySum) AS t2Quntity
       FROM
-          ${process.env.MYSQL_DATABASE}.\`scope_work\`
-      LEFT JOIN ${process.env.MYSQL_DATABASE}.\`list_name_work\` lnw ON lnw.scopeWorkId = ${process.env.MYSQL_DATABASE}.\`scope_work\`.id
+          \`${process.env.MYSQL_DATABASE}\`.\`scope_work\`
+      LEFT JOIN \`${process.env.MYSQL_DATABASE}\`.\`list_name_work\` lnw ON lnw.scopeWorkId = \`${process.env.MYSQL_DATABASE}\`.\`scope_work\`.id
       LEFT JOIN (SELECT 
           listNameWorkId, ROUND(SUM(quntity), 1) AS quntity
       FROM
-          ${process.env.MYSQL_DATABASE}.\`name-list\`
-      GROUP BY ${process.env.MYSQL_DATABASE}.\`name-list\`.listNameWorkId) t1 ON t1.listNameWorkId = lnw.id
+          \`${process.env.MYSQL_DATABASE}\`.\`name-list\`
+      GROUP BY \`${process.env.MYSQL_DATABASE}\`.\`name-list\`.listNameWorkId) t1 ON t1.listNameWorkId = lnw.id
       LEFT JOIN (SELECT 
           SUM(tad.quntity) AS quntitySum,
               nl.listNameWorkId AS listNameWorkId
       FROM
-          ${process.env.MYSQL_DATABASE}.\`table-adding-data\` tad
-      LEFT JOIN ${process.env.MYSQL_DATABASE}.\`name-list\` nl ON nl.id = tad.nameListId
+          \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\` tad
+      LEFT JOIN \`${process.env.MYSQL_DATABASE}\`.\`name-list\` nl ON nl.id = tad.nameListId
       WHERE
           tad.deletedAt IS NULL
       GROUP BY listNameWorkId) t2 ON t2.listNameWorkId = lnw.id
-      GROUP BY ${process.env.MYSQL_DATABASE}.\`scope_work\`.id) sumSw ON sumSw.scope_workId = sw.id
-      INNER JOIN ${process.env.MYSQL_DATABASE}.type_work tw ON tw.id = sw.typeWorkId
-      INNER JOIN ${process.env.MYSQL_DATABASE}.objects obj ON obj.id = sw.objectId
+      GROUP BY \`${process.env.MYSQL_DATABASE}\`.\`scope_work\`.id) sumSw ON sumSw.scope_workId = sw.id
+      INNER JOIN \`${process.env.MYSQL_DATABASE}\`.type_work tw ON tw.id = sw.typeWorkId
+      INNER JOIN \`${process.env.MYSQL_DATABASE}\`.objects obj ON obj.id = sw.objectId
       GROUP BY id) sw ON sw.id = usw.scopeWorkId
   WHERE
       userId = :userId AND organizationId = :organizationId;
@@ -973,26 +973,26 @@ export class ScopeWorkService {
     nw.name as nameWork,
     nw.unitName as unitName
 FROM
-    ${process.env.MYSQL_DATABASE}.\`table-adding-data\` tad
+    \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\` tad
     INNER JOIN (
 		SELECT 
 			sw.id as id,
 			tw.name
-        FROM ${process.env.MYSQL_DATABASE}.scope_work sw
+        FROM \`${process.env.MYSQL_DATABASE}\`.scope_work sw
         INNER JOIN
-        ${process.env.MYSQL_DATABASE}.type_work tw ON tw.id  = sw.typeWorkId
+        \`${process.env.MYSQL_DATABASE}\`.type_work tw ON tw.id  = sw.typeWorkId
     ) sw ON sw.id = tad.scopeWorkId
     INNER JOIN (
 		SELECT 
-			${process.env.MYSQL_DATABASE}.\`name_work\`.id as id,
-            ${process.env.MYSQL_DATABASE}.\`name_work\`.name as name,
+			\`${process.env.MYSQL_DATABASE}\`.\`name_work\`.id as id,
+            \`${process.env.MYSQL_DATABASE}\`.\`name_work\`.name as name,
             u.name as unitName
-		FROM ${process.env.MYSQL_DATABASE}.\`name_work\`
+		FROM \`${process.env.MYSQL_DATABASE}\`.\`name_work\`
         INNER JOIN 
-        ${process.env.MYSQL_DATABASE}.unit u ON u.id = ${process.env.MYSQL_DATABASE}.\`name_work\`.unitId
+        \`${process.env.MYSQL_DATABASE}\`.unit u ON u.id = \`${process.env.MYSQL_DATABASE}\`.\`name_work\`.unitId
     ) nw ON nw.id = tad.nameWorkId
     INNER JOIN
-    ${process.env.MYSQL_DATABASE}.\`user-description\` ud ON ud.userId = tad.userId
+    \`${process.env.MYSQL_DATABASE}\`.\`user-description\` ud ON ud.userId = tad.userId
 WHERE
     tad.scopeWorkId = :idScopeWork
         AND tad.createdAt BETWEEN :dateFrom AND :dateTo
@@ -1110,26 +1110,26 @@ ORDER BY nameWork ASC;
     ROUND(tadQ.quntitySum / nl.quntity * 100, 1) AS percent,
     nl.listNameWorkId AS listNameWorkId
 FROM
-    ${process.env.MYSQL_DATABASE}.\`name-list\` nl
+    \`${process.env.MYSQL_DATABASE}\`.\`name-list\` nl
         INNER JOIN
-    ${process.env.MYSQL_DATABASE}.\`name_work\` nw ON nw.id = nl.nameWorkId
+    \`${process.env.MYSQL_DATABASE}\`.\`name_work\` nw ON nw.id = nl.nameWorkId
         LEFT JOIN
     (SELECT 
         tad.nameListId AS nameListId,
             ROUND(SUM(quntity), 2) AS quntitySum
     FROM
-        ${process.env.MYSQL_DATABASE}.\`table-adding-data\` tad
+        \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\` tad
     WHERE
         tad.deletedAt IS NULL
             AND quntity IS NOT NULL
     GROUP BY tad.nameListId) tadQ ON tadQ.nameListId = nl.id
         INNER JOIN
-    ${process.env.MYSQL_DATABASE}.unit u ON nw.unitId = u.id
+    \`${process.env.MYSQL_DATABASE}\`.unit u ON nw.unitId = u.id
 WHERE
     nl.listNameWorkId IN (SELECT 
             id
         FROM
-            ${process.env.MYSQL_DATABASE}.\`list_name_work\`
+            \`${process.env.MYSQL_DATABASE}\`.\`list_name_work\`
         WHERE
             scopeWorkId = :id)
         AND nl.deletedAt IS NULL
