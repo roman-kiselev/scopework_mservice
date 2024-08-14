@@ -303,9 +303,8 @@ export class TableAddingDataService {
      * @deprecated This method is deprecated and will be removed in the future.
      * Please use newMethod instead.
      */
-    async getHistoryForNameWorkId(params: IGetHistory) {
-        try {
-            const query = `
+    async getHistoryForNameWorkId(organizatonId: number, params: IGetHistory) {
+        const query = `
       SELECT 
       \`table-adding-data\`.id,
       \`user-description\`.firstname AS \`firstname\`,
@@ -315,38 +314,29 @@ export class TableAddingDataService {
       \`table-adding-data\`.deletedAt,
       \`del_table_adding_data\`.id AS \`delCandidate\`
   FROM
-      ${process.env.MYSQL_DATABASE}.\`table-adding-data\`
+      \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`
           INNER JOIN
-      \`user-description\` ON \`user-description\`.userId = ${process.env.MYSQL_DATABASE}.\`table-adding-data\`.userId
+      \`user-description\` ON \`user-description\`.userId = \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`.userId
           LEFT JOIN
-      \`del_table_adding_data\` ON \`del_table_adding_data\`.tableAddingDataId = ${process.env.MYSQL_DATABASE}.\`table-adding-data\`.id
+      \`del_table_adding_data\` ON \`del_table_adding_data\`.tableAddingDataId = \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`.id
           AND \`del_table_adding_data\`.deletedAt IS NULL
   WHERE
               nameWorkId = :nameWorkId AND nameListId = :nameListId
               ORDER BY createdAt ASC;
       `;
-            const replacements = {
-                nameListId: params.nameListId,
-                nameWorkId: params.nameWorkId,
-                scopeWorkId: params.scopeWorkId,
-            };
+        const replacements = {
+            nameListId: params.nameListId,
+            nameWorkId: params.nameWorkId,
+            scopeWorkId: params.scopeWorkId,
+        };
 
-            const data: IDataGetHistoryForNameWorkId[] =
-                await this.tableAddingDataRepository.sequelize.query(query, {
-                    type: QueryTypes.SELECT,
-                    replacements,
-                });
+        const data: IDataGetHistoryForNameWorkId[] =
+            await this.tableAddingDataRepository.sequelize.query(query, {
+                type: QueryTypes.SELECT,
+                replacements,
+            });
 
-            return data;
-        } catch (e) {
-            if (e instanceof HttpException) {
-                return e;
-            }
-            throw new HttpException(
-                e.message,
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-        }
+        return data;
     }
 
     /**
@@ -367,12 +357,12 @@ export class TableAddingDataService {
       SELECT 
           *
       FROM
-          ${process.env.MYSQL_DATABASE}.\`table-adding-data\`
+          \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`
       WHERE
           id = :id;`;
 
             const queryUpdateRemove = `
-      UPDATE ${process.env.MYSQL_DATABASE}.\`table-adding-data\` 
+      UPDATE \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\` 
       SET 
           deletedAt = CURRENT_TIMESTAMP
       WHERE
@@ -423,12 +413,12 @@ export class TableAddingDataService {
       SELECT 
           *
       FROM
-          ${process.env.MYSQL_DATABASE}.\`table-adding-data\`
+          \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`
       WHERE
           id = :id;`;
 
             const queryUpdateRemove = `
-      UPDATE ${process.env.MYSQL_DATABASE}.\`table-adding-data\` 
+      UPDATE \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\` 
       SET 
           deletedAt = null
       WHERE
@@ -503,7 +493,7 @@ export class TableAddingDataService {
         try {
             const removeData = await this.remove(tableAddingDataId);
             const queryConfirmDel = `
-      UPDATE ${process.env.MYSQL_DATABASE}.\`del_table_adding_data\` 
+      UPDATE \`${process.env.MYSQL_DATABASE}\`.\`del_table_adding_data\` 
       SET 
           deletedAt = CURRENT_TIMESTAMP
       WHERE

@@ -7,11 +7,17 @@ import {
     Post,
     Query,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+    ApiBearerAuth,
+    ApiOperation,
+    ApiResponse,
+    ApiTags,
+} from '@nestjs/swagger';
 import { ActiveUser } from 'src/iam/decorators/active-user.decorator';
 import { ActiveUserData } from 'src/iam/interfaces/active-user-data.interface';
 import { CreateDelTableDto } from './dto/create-deltable.dto';
 import { CreateTableAddingDatumDto } from './dto/create-table-adding-datum.dto';
+import { IDataGetHistoryForNameWorkId } from './interfaces/IDataGetHistoryForNameWorkId';
 import { TableAddingDataService } from './table-adding-data.service';
 
 @ApiTags('Table Adding Data')
@@ -49,17 +55,23 @@ export class TableAddingDataController {
         );
     }
 
+    @ApiOperation({ summary: 'Получить историю добавления данных' })
+    @ApiResponse({ status: 200, type: [IDataGetHistoryForNameWorkId] })
     @Get('/historyForName')
     getHistoryForNameWorkId(
         @Query('nameListId') nameListId: number,
         @Query('nameWorkId') nameWorkId: number,
         @Query('scopeWorkId') scopeWorkId: number,
+        @ActiveUser() user: ActiveUserData,
     ) {
-        return this.tableAddingDataService.getHistoryForNameWorkId({
-            nameListId,
-            nameWorkId,
-            scopeWorkId,
-        });
+        return this.tableAddingDataService.getHistoryForNameWorkId(
+            user.organizationId,
+            {
+                nameListId,
+                nameWorkId,
+                scopeWorkId,
+            },
+        );
     }
 
     @Get(':id')
