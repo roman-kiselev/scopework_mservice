@@ -6,12 +6,22 @@ import {
     Patch,
     Post,
     Query,
+    UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+    ApiBearerAuth,
+    ApiOperation,
+    ApiResponse,
+    ApiTags,
+} from '@nestjs/swagger';
+import { RolesGuard } from 'src/iam/authorization/guards/roles/roles.guard';
 import { ActiveUser } from 'src/iam/decorators/active-user.decorator';
+import { Roles } from 'src/iam/decorators/roles-auth.decorator';
+import { RoleName } from 'src/iam/enums/RoleName';
 import { ActiveUserData } from 'src/iam/interfaces/active-user-data.interface';
 import { CreateDelTableDto } from './dto/create-deltable.dto';
 import { CreateTableAddingDatumDto } from './dto/create-table-adding-datum.dto';
+import { IDataGetHistoryForNameWorkId } from './interfaces/IDataGetHistoryForNameWorkId';
 import { TableAddingDataService } from './table-adding-data.service';
 
 @ApiTags('Table Adding Data')
@@ -49,17 +59,23 @@ export class TableAddingDataController {
         );
     }
 
+    @ApiOperation({ summary: 'Получить историю добавления данных' })
+    @ApiResponse({ status: 200, type: [IDataGetHistoryForNameWorkId] })
     @Get('/historyForName')
     getHistoryForNameWorkId(
         @Query('nameListId') nameListId: number,
         @Query('nameWorkId') nameWorkId: number,
         @Query('scopeWorkId') scopeWorkId: number,
+        @ActiveUser() user: ActiveUserData,
     ) {
-        return this.tableAddingDataService.getHistoryForNameWorkId({
-            nameListId,
-            nameWorkId,
-            scopeWorkId,
-        });
+        return this.tableAddingDataService.getHistoryForNameWorkId(
+            user.organizationId,
+            {
+                nameListId,
+                nameWorkId,
+                scopeWorkId,
+            },
+        );
     }
 
     @Get(':id')
@@ -73,8 +89,11 @@ export class TableAddingDataController {
     }
 
     @Post('/createCandidateDel')
-    createCandidateDel(@Body() dto: CreateDelTableDto) {
-        return this.tableAddingDataService.createCandidateDel(dto);
+    createCandidateDel(
+        @Body() dto: CreateDelTableDto,
+        @ActiveUser() user: ActiveUserData,
+    ) {
+        return this.tableAddingDataService.createCandidateDel(dto, user.sub);
     }
 
     // TODO внести изменения
@@ -89,9 +108,11 @@ export class TableAddingDataController {
     //     );
     // }
 
+    @Roles(RoleName.ADMIN)
+    @UseGuards(RolesGuard)
     @Patch('/remove/:id')
-    remove(@Param('id') id: string) {
-        return this.tableAddingDataService.remove(+id);
+    remove(@Param('id') id: string, @ActiveUser() user: ActiveUserData) {
+        return this.tableAddingDataService.remove(+id, user.organizationId);
     }
 
     @Patch('/recovery/:id')
@@ -103,10 +124,12 @@ export class TableAddingDataController {
     confirmDelCandidate(
         @Param('id') id: string,
         @Query('idDelCandidate') idDelCandidate: number,
+        @ActiveUser() user: ActiveUserData,
     ) {
         return this.tableAddingDataService.confirmDelCandidate(
             +id,
             idDelCandidate,
+            user.organizationId,
         );
     }
 }

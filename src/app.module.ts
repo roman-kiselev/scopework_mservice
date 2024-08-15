@@ -28,9 +28,6 @@ import { TableAddingDataModule } from './table-adding-data/table-adding-data.mod
 import { TypeWorkModule } from './type-work/type-work.module';
 import { UnitModule } from './unit/unit.module';
 
-console.log(process.env.MYSQL_HOST, process.env.MYSQL_PORT);
-console.log(process.env.REDIS_HOST, process.env.REDIS_PORT);
-
 @Module({
     imports: [
         // CacheModule.register({

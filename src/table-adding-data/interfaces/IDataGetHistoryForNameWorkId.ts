@@ -1,4 +1,4 @@
-export interface IDataGetHistoryForNameWorkId {
+export class IDataGetHistoryForNameWorkId {
     id: number;
     firstname: string;
     lastname: string;

@@ -18,6 +18,8 @@ import { ObjectsService } from './objects.service';
     controllers: [ObjectsController],
     providers: [ObjectsService],
     imports: [
+        forwardRef(() => TableAddingDataModule),
+        forwardRef(() => NameListModule),
         SequelizeModule.forFeature([Objects, ObjectTypeWork]),
         IamModule,
         forwardRef(() =>
@@ -26,7 +28,7 @@ import { ObjectsService } from './objects.service';
                     name: 'USER_MAIN_SERVICE',
                     transport: Transport.RMQ,
                     options: {
-                        urls: ['amqp://localhost:5672'],
+                        urls: [`${process.env.RABBIT_LINK}`],
                         queue: 'iam_queue',
                         queueOptions: {
                             durable: true,
@@ -36,11 +38,9 @@ import { ObjectsService } from './objects.service';
             ]),
         ),
         RedisModule,
-        TableAddingDataModule,
+        forwardRef(() => ListNameWorkModule),
         TypeWorkModule,
         forwardRef(() => ScopeWorkModule),
-        NameListModule,
-        ListNameWorkModule,
     ],
     exports: [
         ObjectsService,

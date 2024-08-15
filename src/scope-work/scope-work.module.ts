@@ -25,7 +25,7 @@ import { ScopeWorkService } from './scope-work.service';
                     name: 'USER_MAIN_SERVICE',
                     transport: Transport.RMQ,
                     options: {
-                        urls: ['amqp://localhost:5672'],
+                        urls: [`${process.env.RABBIT_LINK}`],
                         queue: 'iam_queue',
                         queueOptions: {
                             durable: true,
@@ -36,10 +36,10 @@ import { ScopeWorkService } from './scope-work.service';
         ),
         SequelizeModule.forFeature([ScopeWork, UserScopeWork]),
         DatabaseModule,
-        TableAddingDataModule,
+        forwardRef(() => TableAddingDataModule),
         forwardRef(() => ObjectsModule),
-        NameListModule,
-        ListNameWorkModule,
+        forwardRef(() => NameListModule),
+        forwardRef(() => ListNameWorkModule),
         TypeWorkModule,
     ],
     exports: [
