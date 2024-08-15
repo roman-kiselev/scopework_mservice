@@ -34,6 +34,7 @@ export class ObjectsService {
         private readonly listNameWorkService: ListNameWorkService,
         private readonly tableAddingDataService: TableAddingDataService,
         private readonly typeWorkService: TypeWorkService,
+
         private readonly nameListService: NameListService,
         private readonly scopeWorkUserService: ScopeWorkUserService,
         private redisService: RedisService,

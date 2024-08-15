@@ -1,5 +1,6 @@
 import {
     ConflictException,
+    forwardRef,
     HttpException,
     HttpStatus,
     Inject,
@@ -40,10 +41,14 @@ export class ScopeWorkService {
         @InjectModel(UserScopeWork)
         private userScopeWorkRepository: typeof UserScopeWork,
         @Inject('USER_MAIN_SERVICE') private readonly clientUsers: ClientProxy,
+        @Inject(forwardRef(() => ListNameWorkService))
         private readonly listNameWorkService: ListNameWorkService,
+        @Inject(forwardRef(() => TableAddingDataService))
         private readonly tableAddingDataService: TableAddingDataService,
+        @Inject(forwardRef(() => ObjectsService))
         private readonly objectService: ObjectsService,
         private readonly databaseService: DatabaseService,
+        @Inject(forwardRef(() => NameListService))
         private readonly nameListService: NameListService,
         private readonly typeWorkService: TypeWorkService,
         private readonly userScopeWorkService: ScopeWorkUserService,

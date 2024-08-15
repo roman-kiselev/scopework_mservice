@@ -6,6 +6,7 @@ import {
     Patch,
     Post,
     Query,
+    UseGuards,
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
@@ -13,7 +14,10 @@ import {
     ApiResponse,
     ApiTags,
 } from '@nestjs/swagger';
+import { RolesGuard } from 'src/iam/authorization/guards/roles/roles.guard';
 import { ActiveUser } from 'src/iam/decorators/active-user.decorator';
+import { Roles } from 'src/iam/decorators/roles-auth.decorator';
+import { RoleName } from 'src/iam/enums/RoleName';
 import { ActiveUserData } from 'src/iam/interfaces/active-user-data.interface';
 import { CreateDelTableDto } from './dto/create-deltable.dto';
 import { CreateTableAddingDatumDto } from './dto/create-table-adding-datum.dto';
@@ -85,8 +89,11 @@ export class TableAddingDataController {
     }
 
     @Post('/createCandidateDel')
-    createCandidateDel(@Body() dto: CreateDelTableDto) {
-        return this.tableAddingDataService.createCandidateDel(dto);
+    createCandidateDel(
+        @Body() dto: CreateDelTableDto,
+        @ActiveUser() user: ActiveUserData,
+    ) {
+        return this.tableAddingDataService.createCandidateDel(dto, user.sub);
     }
 
     // TODO внести изменения
@@ -101,9 +108,11 @@ export class TableAddingDataController {
     //     );
     // }
 
+    @Roles(RoleName.ADMIN)
+    @UseGuards(RolesGuard)
     @Patch('/remove/:id')
-    remove(@Param('id') id: string) {
-        return this.tableAddingDataService.remove(+id);
+    remove(@Param('id') id: string, @ActiveUser() user: ActiveUserData) {
+        return this.tableAddingDataService.remove(+id, user.organizationId);
     }
 
     @Patch('/recovery/:id')
@@ -115,10 +124,12 @@ export class TableAddingDataController {
     confirmDelCandidate(
         @Param('id') id: string,
         @Query('idDelCandidate') idDelCandidate: number,
+        @ActiveUser() user: ActiveUserData,
     ) {
         return this.tableAddingDataService.confirmDelCandidate(
             +id,
             idDelCandidate,
+            user.organizationId,
         );
     }
 }

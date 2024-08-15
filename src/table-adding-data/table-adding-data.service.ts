@@ -1,16 +1,23 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+    BadRequestException,
+    HttpException,
+    HttpStatus,
+    Inject,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/sequelize';
 import { firstValueFrom } from 'rxjs';
 import { Op, QueryTypes, Sequelize } from 'sequelize';
 import { NameWorkService } from 'src/name-work/name-work.service';
+import { ScopeWorkService } from 'src/scope-work/scope-work.service';
 import { UnitService } from 'src/unit/unit.service';
 import { CreateDelTableDto } from './dto/create-deltable.dto';
 import { CreateTableAddingDatumDto } from './dto/create-table-adding-datum.dto';
 import { GetAllByDto } from './dto/get-all-by.dto';
 import { DelTableAddingData } from './entities/del-table-adding-data.model';
 import { TableAddingData } from './entities/table-adding-data.model';
-import { IDataGetHistoryForNameWorkId } from './interfaces/IDataGetHistoryForNameWorkId';
 import { IGetHistory } from './interfaces/IGetHistory';
 
 @Injectable()
@@ -26,6 +33,7 @@ export class TableAddingDataService {
         private readonly clientDescriptionUser: ClientProxy,
         private readonly unitService: UnitService,
         private readonly nameWorkService: NameWorkService,
+        private readonly scopeWorkService: ScopeWorkService,
     ) {}
 
     /**
@@ -58,6 +66,29 @@ export class TableAddingDataService {
             group: ['userId'],
         });
         return list;
+    }
+
+    /**
+     * Возвращает
+     * @param idTableAddingData
+     * @param idOrganization
+     * @returns
+     */
+    async isOrganization(idTableAddingData: number, idOrganization: number) {
+        const tableAddingData = await this.tableAddingDataRepository.findOne({
+            where: { id: idTableAddingData },
+        });
+        const scopework = await this.scopeWorkService.getScopeWorkBy(
+            {
+                criteria: {
+                    id: tableAddingData.scopeWorkId,
+                },
+                relations: [],
+            },
+            idOrganization,
+        );
+
+        return scopework ? tableAddingData : null;
     }
 
     // TODO изменить наименование и вероятно сделать рефактор
@@ -304,39 +335,82 @@ export class TableAddingDataService {
      * Please use newMethod instead.
      */
     async getHistoryForNameWorkId(organizatonId: number, params: IGetHistory) {
-        const query = `
-      SELECT 
-      \`table-adding-data\`.id,
-      \`user-description\`.firstname AS \`firstname\`,
-      \`user-description\`.lastname AS \`lastname\`,
-      \`table-adding-data\`.quntity,
-      \`table-adding-data\`.createdAt,
-      \`table-adding-data\`.deletedAt,
-      \`del_table_adding_data\`.id AS \`delCandidate\`
-  FROM
-      \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`
-          INNER JOIN
-      \`user-description\` ON \`user-description\`.userId = \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`.userId
-          LEFT JOIN
-      \`del_table_adding_data\` ON \`del_table_adding_data\`.tableAddingDataId = \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`.id
-          AND \`del_table_adding_data\`.deletedAt IS NULL
-  WHERE
-              nameWorkId = :nameWorkId AND nameListId = :nameListId
-              ORDER BY createdAt ASC;
-      `;
-        const replacements = {
-            nameListId: params.nameListId,
-            nameWorkId: params.nameWorkId,
-            scopeWorkId: params.scopeWorkId,
-        };
+        console.log(params);
+        const isScopeWork = await this.scopeWorkService.getScopeWorkBy(
+            {
+                criteria: {
+                    id: params.scopeWorkId,
+                },
+                relations: [],
+            },
+            organizatonId,
+        );
+        if (!isScopeWork) {
+            throw new NotFoundException('ScopeWork not found');
+        }
+        const result = await this.tableAddingDataRepository.findAll({
+            attributes: [
+                'id',
+                'quntity',
+                'createdAt',
+                'deletedAt',
+                'userId',
+                // [sequelize.col('del_table_adding_data'), 'delCandidate'],
+            ],
+            include: [
+                {
+                    model: DelTableAddingData,
+                    //as: 'del_table_adding_data',
+                    required: false,
+                    where: {
+                        deletedAt: {
+                            [Op.is]: null,
+                        },
+                    },
+                    attributes: [],
+                },
+            ],
+            where: {
+                nameWorkId: params.nameWorkId,
+                nameListId: params.nameListId,
+                scopeWorkId: isScopeWork.id,
+            },
+            order: [['createdAt', 'ASC']],
+        });
 
-        const data: IDataGetHistoryForNameWorkId[] =
-            await this.tableAddingDataRepository.sequelize.query(query, {
-                type: QueryTypes.SELECT,
-                replacements,
-            });
+        //         const query = `
+        //       SELECT
+        //       \`table-adding-data\`.id,
+        //       \`user-description\`.firstname AS \`firstname\`,
+        //       \`user-description\`.lastname AS \`lastname\`,
+        //       \`table-adding-data\`.quntity,
+        //       \`table-adding-data\`.createdAt,
+        //       \`table-adding-data\`.deletedAt,
+        //       \`del_table_adding_data\`.id AS \`delCandidate\`
+        //   FROM
+        //       \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`
+        //           INNER JOIN
+        //       \`user-description\` ON \`user-description\`.userId = \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`.userId
+        //           LEFT JOIN
+        //       \`del_table_adding_data\` ON \`del_table_adding_data\`.tableAddingDataId = \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`.id
+        //           AND \`del_table_adding_data\`.deletedAt IS NULL
+        //   WHERE
+        //               nameWorkId = :nameWorkId AND nameListId = :nameListId
+        //               ORDER BY createdAt ASC;
+        //       `;
+        //         const replacements = {
+        //             nameListId: params.nameListId,
+        //             nameWorkId: params.nameWorkId,
+        //             scopeWorkId: params.scopeWorkId,
+        //         };
 
-        return data;
+        //         const data: IDataGetHistoryForNameWorkId[] =
+        //             await this.tableAddingDataRepository.sequelize.query(query, {
+        //                 type: QueryTypes.SELECT,
+        //                 replacements,
+        //             });
+
+        return result;
     }
 
     /**
@@ -351,55 +425,30 @@ export class TableAddingDataService {
      * @deprecated This method is deprecated and will be removed in the future.
      * Please use newMethod instead.
      */
-    async remove(id: number) {
+    async remove(id: number, organizatonId: number) {
+        console.log(id, organizatonId);
+        const tableAddingData = await this.isOrganization(id, organizatonId);
+        if (!tableAddingData) {
+            throw new NotFoundException('TableAddingData not found');
+        }
+
         try {
-            const querySelect = `
-      SELECT 
-          *
-      FROM
-          \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`
-      WHERE
-          id = :id;`;
-
-            const queryUpdateRemove = `
-      UPDATE \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\` 
-      SET 
-          deletedAt = CURRENT_TIMESTAMP
-      WHERE
-          id = :id;
-      
-      `;
-
-            const replacements = {
-                id,
-            };
-            const dataSelect: TableAddingData[] =
-                await this.tableAddingDataRepository.sequelize.query(
-                    querySelect,
-                    {
-                        type: QueryTypes.SELECT,
-                        replacements,
-                    },
-                );
-            const data = await this.tableAddingDataRepository.sequelize.query(
-                queryUpdateRemove,
+            const result = await this.tableAddingDataRepository.update(
                 {
-                    type: QueryTypes.UPDATE,
-                    replacements,
+                    deletedAt: `${new Date()}`,
+                },
+                {
+                    where: { id },
                 },
             );
 
-            if (data) {
-                return dataSelect;
+            if (!result) {
+                throw new BadRequestException('TableAddingData not deleted');
             }
-        } catch (e) {
-            if (e instanceof HttpException) {
-                return e;
-            }
-            throw new HttpException(
-                e.message,
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
+            return tableAddingData;
+        } catch (error) {
+            console.error('Error saving TableAddingData:', error);
+            throw new BadRequestException('TableAddingData not deleted');
         }
     }
 
@@ -463,23 +512,13 @@ export class TableAddingDataService {
      * @deprecated This method is deprecated and will be removed in the future.
      * Please use newMethod instead.
      */
-    async createCandidateDel(dto: CreateDelTableDto) {
-        try {
-            const data = await this.delTableAddingDataRepository.create({
-                tableAddingDataId: dto.tableAddingDataId,
-                userId: dto.userId,
-            });
+    async createCandidateDel(dto: CreateDelTableDto, userId: number) {
+        const data = await this.delTableAddingDataRepository.create({
+            tableAddingDataId: dto.tableAddingDataId,
+            userId: userId,
+        });
 
-            return data;
-        } catch (e) {
-            if (e instanceof HttpException) {
-                return e;
-            }
-            throw new HttpException(
-                e.message,
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-        }
+        return data;
     }
 
     /**
@@ -489,38 +528,16 @@ export class TableAddingDataService {
     async confirmDelCandidate(
         tableAddingDataId: number,
         idDelCandidate: number,
+        organizationId: number,
     ) {
-        try {
-            const removeData = await this.remove(tableAddingDataId);
-            const queryConfirmDel = `
-      UPDATE \`${process.env.MYSQL_DATABASE}\`.\`del_table_adding_data\` 
-      SET 
-          deletedAt = CURRENT_TIMESTAMP
-      WHERE
-          id = :idDelCandidate;
-      
-      `;
-            const replacements = {
-                idDelCandidate,
-            };
+        const removeData = await this.remove(tableAddingDataId, organizationId);
+        const delTableAddingData =
+            await this.delTableAddingDataRepository.findOne({
+                where: { id: idDelCandidate, tableAddingDataId: removeData.id },
+            });
+        delTableAddingData.deletedAt = new Date();
+        const result = await delTableAddingData.save();
 
-            await this.delTableAddingDataRepository.sequelize.query(
-                queryConfirmDel,
-                {
-                    type: QueryTypes.UPDATE,
-                    replacements,
-                },
-            );
-
-            return removeData;
-        } catch (e) {
-            if (e instanceof HttpException) {
-                return e;
-            }
-            throw new HttpException(
-                e.message,
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-        }
+        return result;
     }
 }

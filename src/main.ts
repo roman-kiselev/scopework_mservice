@@ -8,7 +8,7 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     app.enableCors({
         origin: `${process.env.LINK_ORIGIN}`,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Укажите необходимые методы
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], // Укажите необходимые методы
         allowedHeaders: ['Content-Type', 'Authorization'], // Укажите допустимые заголовки
         credentials: true,
     });

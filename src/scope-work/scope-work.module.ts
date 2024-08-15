@@ -36,10 +36,10 @@ import { ScopeWorkService } from './scope-work.service';
         ),
         SequelizeModule.forFeature([ScopeWork, UserScopeWork]),
         DatabaseModule,
-        TableAddingDataModule,
+        forwardRef(() => TableAddingDataModule),
         forwardRef(() => ObjectsModule),
-        NameListModule,
-        ListNameWorkModule,
+        forwardRef(() => NameListModule),
+        forwardRef(() => ListNameWorkModule),
         TypeWorkModule,
     ],
     exports: [
