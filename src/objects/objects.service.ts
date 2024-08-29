@@ -246,12 +246,20 @@ export class ObjectsService {
 
         const mainCount = arrNames
             .map((item) => item.quntity)
-            .reduce((currentItem, nextItem) => currentItem + nextItem, 0);
+            .reduce(
+                (currentItem, nextItem) =>
+                    currentItem + nextItem ? nextItem : 0,
+                0,
+            );
 
         // Получим общее количество изменений
         const countTableAddingData = tableAddingData
             .map((item) => item.quntity)
-            .reduce((currentItem, nextItem) => currentItem + nextItem, 0);
+            .reduce(
+                (currentItem, nextItem) =>
+                    currentItem + nextItem ? nextItem : 0,
+                0,
+            );
         const percent = ((countTableAddingData / mainCount) * 100).toFixed(1);
 
         return {
@@ -300,10 +308,18 @@ export class ObjectsService {
         const dataObject = fulfilledResult.flat();
         const mainCount = dataObject
             .map((item) => item.mainCount)
-            .reduce((currentItem, nextItem) => currentItem + nextItem, 0);
+            .reduce(
+                (currentItem, nextItem) =>
+                    currentItem + nextItem ? nextItem : 0,
+                0,
+            );
         const countTableAddingData = dataObject
             .map((item) => item.countTableAddingData)
-            .reduce((currentItem, nextItem) => currentItem + nextItem, 0);
+            .reduce(
+                (currentItem, nextItem) =>
+                    currentItem + nextItem ? nextItem : 0,
+                0,
+            );
 
         return {
             id: oneObject.id,
@@ -476,6 +492,7 @@ export class ObjectsService {
     async getFullDataForObject(idObject: number, organizationId: number) {
         const cacheKey = `oneObject:${idObject}`;
         const dataRedis = await this.redisService.get(cacheKey);
+
         if (dataRedis) {
             return JSON.parse(dataRedis);
         }
@@ -494,12 +511,16 @@ export class ObjectsService {
 
         const promises = filteredScopeWorks.map(async (item) => {
             const { id: scopeWorkId } = item;
-            const { listNamesWithData, countListNameWorksArr } =
-                await this.scopeWorkService.getFullDataForOneScopeWork(
-                    item.id,
-                    organizationId,
-                    usersId,
-                );
+            const {
+                listNamesWithData,
+                countListNameWorksArr,
+                countTableAddingData,
+                // percentOneScopeWork,
+            } = await this.scopeWorkService.getFullDataForOneScopeWork(
+                item.id,
+                organizationId,
+                usersId,
+            );
 
             const finishUserAddingMain: any[] = [];
             const usersIdSet = new Set<number>();
@@ -522,7 +543,7 @@ export class ObjectsService {
                 const filterUser = finishUserAddingMain
                     .filter((user) => user.userId === userId)
                     .map((user) => Number(user.quntity))
-                    .reduce((prev, curr) => prev + curr, 0);
+                    .reduce((prev, curr) => (prev + curr ? curr : 0), 0);
 
                 return {
                     userId,
@@ -543,11 +564,12 @@ export class ObjectsService {
                 updatedAt: item.updatedAt,
                 listNamesWithData,
                 listUsersData: arr,
+                countListNameWorksArr: countListNameWorksArr,
+                countTableAddingData: countTableAddingData,
             };
         });
 
         const data = await Promise.all(promises);
-
         await this.redisService.set(cacheKey, JSON.stringify(data), 3600);
 
         return data;
@@ -626,6 +648,7 @@ export class ObjectsService {
                 countTableAddingData,
                 listUsersData,
             } = item;
+
             mainListUserWithRepeats = [
                 ...mainListUserWithRepeats,
                 ...listUsersData,
@@ -644,7 +667,11 @@ export class ObjectsService {
             const filterUser = mainListUserWithRepeats
                 .filter((user) => user.userId === item)
                 .map((item) => Number(item.quntity))
-                .reduce((currentItem, nextItem) => currentItem + nextItem, 0);
+                .reduce(
+                    (currentItem, nextItem) =>
+                        currentItem + nextItem ? nextItem : 0,
+                    0,
+                );
             mainListUserNoRepetitions = [
                 ...mainListUserNoRepetitions,
                 {
