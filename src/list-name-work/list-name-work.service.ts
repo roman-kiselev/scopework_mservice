@@ -180,10 +180,10 @@ export class ListNameWorkService {
      * @param {number} organizationId - The ID of the organization associated with the list.
      * @return {Promise<ListNameWorkFullDto>} A promise that resolves to the retrieved ListNameWork object.
      */
-    async getOneById(
-        id: string,
-        organizationId: number,
-    ): Promise<ListNameWorkFullDto> {
+    async getOneById(id: string, organizationId: number) {
+        if (id === '0') {
+            return null;
+        }
         const result = await this.getOneBy(
             {
                 criteria: {

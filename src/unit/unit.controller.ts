@@ -27,7 +27,13 @@ import { UnitService } from './unit.service';
 
 @ApiTags('Units')
 @ApiBearerAuth()
-@Roles(RoleName.ADMIN, RoleName.MANAGER, RoleName.DRIVER)
+@Roles(
+    RoleName.ADMIN,
+    RoleName.MANAGER,
+    RoleName.MASTER,
+    RoleName.DEV,
+    RoleName.DRIVER,
+)
 @UseGuards(RolesGuard)
 @Controller('unit')
 export class UnitController {

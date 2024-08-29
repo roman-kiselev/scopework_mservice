@@ -271,7 +271,6 @@ export class NameWorkService {
     // TODO Непонятное что то, переписать или удалить
     // async createNoChecks(dto: CreateNameWorkDto) {
     //     try {
-    //         console.log(dto);
     //         const { name, typeWorkId, unitId } = dto;
 
     //         // Создаём наименование и связь
@@ -633,10 +632,13 @@ export class NameWorkService {
         const arrNames = Promise.all(
             dto.map(async (nameWork) => {
                 if (
-                    !(await this.getOneNameWorkBy(
-                        { criteria: { name: nameWork.name }, relations: [] },
-                        organizationId,
-                    ))
+                    !(await this.nameWorkRepository.findOne({
+                        where: {
+                            name: nameWork.name,
+                            organizationId,
+                            deletedAt: null,
+                        },
+                    }))
                 ) {
                     const newNameWork = await this.createNameWorkWithUnit(
                         {
@@ -781,7 +783,6 @@ export class NameWorkService {
  */
 // async create(dto: CreateNameWorkDto) {
 //     try {
-//         console.log(dto);
 //         const { name, typeWorkId, unitId } = dto;
 //         // Проверим существование товара
 //         if (!this.checkNameWithDto(dto)) {

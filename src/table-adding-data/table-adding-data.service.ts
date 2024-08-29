@@ -219,9 +219,6 @@ export class TableAddingDataService {
             // const finishDateTest = dateFrom
             //     ? dateFrom
             //     : `${year}-${monthFrom}-${Number(day) - 1}`;
-            console.log(dateFrom, dateTo);
-            console.log(finishDateFrom, finishDateTo);
-
             const { count, rows } =
                 await this.tableAddingDataRepository.findAndCountAll({
                     where: {
@@ -335,7 +332,6 @@ export class TableAddingDataService {
      * Please use newMethod instead.
      */
     async getHistoryForNameWorkId(organizatonId: number, params: IGetHistory) {
-        console.log(params);
         const isScopeWork = await this.scopeWorkService.getScopeWorkBy(
             {
                 criteria: {
@@ -426,7 +422,6 @@ export class TableAddingDataService {
      * Please use newMethod instead.
      */
     async remove(id: number, organizatonId: number) {
-        console.log(id, organizatonId);
         const tableAddingData = await this.isOrganization(id, organizatonId);
         if (!tableAddingData) {
             throw new NotFoundException('TableAddingData not found');

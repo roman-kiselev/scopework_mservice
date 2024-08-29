@@ -88,7 +88,6 @@ export class ObjectsController {
         @Param('id') id: number,
         @ActiveUser() user: ActiveUserData,
     ) {
-        console.log('id', id);
         return this.objectsService.getAllScopeWorksWithFullData(
             id,
             user.organizationId,
