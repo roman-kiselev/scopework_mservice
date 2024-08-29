@@ -31,8 +31,7 @@ import { ScopeWorkService } from './scope-work.service';
 
 @ApiTags('Scope Work')
 @ApiBearerAuth()
-// @UseGuards(AccessTokenGuards)
-@Roles(RoleName.ADMIN)
+@Roles(RoleName.ADMIN, RoleName.MASTER)
 @UseGuards(RolesGuard)
 @Controller('scope-work')
 export class ScopeWorkController {
@@ -66,6 +65,7 @@ export class ScopeWorkController {
         @Param('id') id: string,
         @ActiveUser() user: ActiveUserData,
     ) {
+        console.log(id, user.organizationId);
         return await this.scopeWorkService.getAllScopeWorkSqlShort(
             id,
             user.organizationId,
@@ -78,20 +78,6 @@ export class ScopeWorkController {
     @Get('/quickWithoutGroup/:id')
     async quickOneScopeWorkById(@Param('id') id: string) {
         return await this.scopeWorkService.quickOneScopeWorkById(id);
-    }
-
-    @ApiOperation({ summary: 'Получить один' })
-    @ApiResponse({ status: HttpStatus.OK, type: GetOneScopeworkResDto })
-    @ApiResponse({ type: HttpException })
-    @Get('/:id')
-    async getOneById(
-        @Param('id') id: string,
-        @ActiveUser() user: ActiveUserData,
-    ) {
-        return await this.scopeWorkService.getOneScopeWork(
-            id,
-            user.organizationId,
-        );
     }
 
     @ApiOperation({ summary: 'Получить все для пользователя' })
@@ -167,5 +153,19 @@ export class ScopeWorkController {
     @Post('/edit')
     async updateScopeWork(@Body() dto: EditScopeWorkDto) {
         return await this.scopeWorkService.editScopeWork(dto);
+    }
+
+    @ApiOperation({ summary: 'Получить один' })
+    @ApiResponse({ status: HttpStatus.OK, type: GetOneScopeworkResDto })
+    @ApiResponse({ type: HttpException })
+    @Get('/:id')
+    async getOneById(
+        @Param('id') id: string,
+        @ActiveUser() user: ActiveUserData,
+    ) {
+        return await this.scopeWorkService.getOneScopeWork(
+            id,
+            user.organizationId,
+        );
     }
 }

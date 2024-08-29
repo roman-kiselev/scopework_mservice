@@ -73,6 +73,7 @@ export class ScopeWorkService {
                 'ScopeWork with this criteria not found',
             );
         }
+
         return scopeWork;
     }
 
@@ -440,41 +441,37 @@ export class ScopeWorkService {
      * Please use newMethod instead.
      */
     private async editArrUsers(arr: number[], scopeWorkId: number) {
-        console.log(arr);
-        // Отсортируем массив
-        // Получим для начала уже существующий массив
-        const scopeWork = await this.scopeWorkRepository.findByPk(scopeWorkId, {
-            // TODO внести изменения
-            // include: [
-            //     {
-            //         model: User,
-            //     },
-            // ],
-        });
+        const users = await this.userScopeWorkService.getAllUsersInScopeWork([
+            scopeWorkId,
+        ]);
 
-        // const { users } = scopeWork;
-        //  TODO изменения нужно внести, ошибка users
-        // const { users } = scopeWork;
-        // // Есть 2 массива
-        // // Нужно найти id которые отсутствуют в scopeWork => users и добавить
-        // const arrUsersId = users.map((item) => item.id);
-        // // Проходим для добавления
+        const userIds = users.map((item) => item.userId);
+        const arrForAdd = arr.filter((item) => !userIds.includes(item));
+        const arrForDelete = userIds.filter((item) => !arr.includes(item));
 
-        // for (const item of arr) {
-        //     const findedId = arrUsersId.find((user) => user === item);
-        //     if (!findedId) {
-        //         await scopeWork.$add('users', item);
-        //     }
-        // }
+        if (arrForAdd.length > 0) {
+            const addPromise = arrForAdd.map((item) =>
+                this.userScopeWorkService.createUserScopeWork(
+                    item,
+                    scopeWorkId,
+                ),
+            );
 
-        // for (const item of arrUsersId) {
-        //     const findedId = arr.find((user) => user === item);
-        //     if (!findedId) {
-        //         await scopeWork.$remove('users', item);
-        //     }
-        // }
+            await Promise.all(addPromise);
+        }
 
-        return scopeWork;
+        if (arrForDelete.length > 0) {
+            const deletePromise = arrForDelete.map((item) =>
+                this.userScopeWorkService.deleteUserScopeWork(
+                    item,
+                    scopeWorkId,
+                ),
+            );
+
+            await Promise.all(deletePromise);
+        }
+
+        return users;
     }
 
     /**
@@ -599,8 +596,10 @@ export class ScopeWorkService {
                 relations: ['listNameWork', 'tableAddingData'],
             },
             organizationId,
-            { raw: true },
         );
+        const users = await this.userScopeWorkService.getAllUsersInScopeWork([
+            scopeWork.id,
+        ]);
 
         const { typeWorkId, objectId, listNameWork } = scopeWork;
 
@@ -633,9 +632,11 @@ export class ScopeWorkService {
         });
 
         const findList = await Promise.all(findListPromises);
+        const findListCopy = JSON.parse(JSON.stringify(findList));
 
         const changedScopeWork = {
-            ...scopeWork,
+            ...findListCopy[0],
+            users: users,
             object: findObject,
             typeWork: findTypeWork,
             listNameWork: findList,
@@ -757,16 +758,17 @@ export class ScopeWorkService {
         const scopeWorks = await this.getScopeWorksAllBy(
             {
                 criteria: {},
-                relations: ['tableAddingData', 'listNameWork'],
+                //relations: ['tableAddingData', 'listNameWork'],
             },
             organizationId,
         );
-        const promises = scopeWorks.map((scopeWork) => {
-            return this.getProgressForScopeWork(scopeWork, organizationId);
-        });
-        const data = await Promise.all(promises);
+        // TODO Исправить!!! Выдаёт прогресс для каждого scopeWork
+        // const promises = scopeWorks.map((scopeWork) => {
+        //     return this.getProgressForScopeWork(scopeWork, organizationId);
+        // });
+        // const data = await Promise.all(promises);
 
-        return data;
+        return scopeWorks;
     }
 
     // TODO сделан небольшой рефактор
@@ -1026,9 +1028,7 @@ ORDER BY nameWork ASC;
 
             return data;
         } catch (e) {
-            console.log(e);
             if (e instanceof HttpException) {
-                console.log(e);
                 throw e;
             }
             throw new HttpException(
@@ -1083,7 +1083,6 @@ ORDER BY nameWork ASC;
             }
             throw new HttpException('Нет данных', HttpStatus.BAD_REQUEST);
         } catch (e) {
-            console.log(e);
             if (e instanceof HttpException) {
                 throw e;
             }
@@ -1151,7 +1150,6 @@ ORDER BY nw.name ASC;
             return data;
         } catch (e) {
             if (e instanceof HttpException) {
-                console.log(e);
                 throw e;
             }
             throw new HttpException(

@@ -84,4 +84,24 @@ export class ScopeWorkUserService {
 
         return userScopeWork;
     }
+
+    /**
+     * Метод для удаления пользователя в рабочей области.
+     * @returns Возвращает объект.
+     */
+    async deleteUserScopeWork(userId: number, scopeWorkId: number) {
+        const userScopeWork = await this.userScopeWorkRepository.destroy({
+            where: {
+                userId,
+                scopeWorkId,
+            },
+        });
+        if (!userScopeWork) {
+            throw new ConflictException(
+                'UserScopeWork not deleted, please try again',
+            );
+        }
+
+        return userScopeWork;
+    }
 }
