@@ -515,7 +515,7 @@ export class ObjectsService {
                 listNamesWithData,
                 countListNameWorksArr,
                 countTableAddingData,
-                percentOneScopeWork,
+                // percentOneScopeWork,
             } = await this.scopeWorkService.getFullDataForOneScopeWork(
                 item.id,
                 organizationId,
