@@ -246,20 +246,12 @@ export class ObjectsService {
 
         const mainCount = arrNames
             .map((item) => item.quntity)
-            .reduce(
-                (currentItem, nextItem) =>
-                    currentItem + nextItem ? nextItem : 0,
-                0,
-            );
+            .reduce((currentItem, nextItem) => currentItem + nextItem, 0);
 
         // Получим общее количество изменений
         const countTableAddingData = tableAddingData
             .map((item) => item.quntity)
-            .reduce(
-                (currentItem, nextItem) =>
-                    currentItem + nextItem ? nextItem : 0,
-                0,
-            );
+            .reduce((currentItem, nextItem) => currentItem + nextItem, 0);
         const percent = ((countTableAddingData / mainCount) * 100).toFixed(1);
 
         return {
@@ -308,18 +300,10 @@ export class ObjectsService {
         const dataObject = fulfilledResult.flat();
         const mainCount = dataObject
             .map((item) => item.mainCount)
-            .reduce(
-                (currentItem, nextItem) =>
-                    currentItem + nextItem ? nextItem : 0,
-                0,
-            );
+            .reduce((currentItem, nextItem) => currentItem + nextItem, 0);
         const countTableAddingData = dataObject
             .map((item) => item.countTableAddingData)
-            .reduce(
-                (currentItem, nextItem) =>
-                    currentItem + nextItem ? nextItem : 0,
-                0,
-            );
+            .reduce((currentItem, nextItem) => currentItem + nextItem, 0);
 
         return {
             id: oneObject.id,
@@ -543,7 +527,7 @@ export class ObjectsService {
                 const filterUser = finishUserAddingMain
                     .filter((user) => user.userId === userId)
                     .map((user) => Number(user.quntity))
-                    .reduce((prev, curr) => (prev + curr ? curr : 0), 0);
+                    .reduce((prev, curr) => prev + curr, 0);
 
                 return {
                     userId,
@@ -667,11 +651,7 @@ export class ObjectsService {
             const filterUser = mainListUserWithRepeats
                 .filter((user) => user.userId === item)
                 .map((item) => Number(item.quntity))
-                .reduce(
-                    (currentItem, nextItem) =>
-                        currentItem + nextItem ? nextItem : 0,
-                    0,
-                );
+                .reduce((currentItem, nextItem) => currentItem + nextItem, 0);
             mainListUserNoRepetitions = [
                 ...mainListUserNoRepetitions,
                 {
