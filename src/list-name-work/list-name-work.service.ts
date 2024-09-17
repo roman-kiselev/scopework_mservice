@@ -315,7 +315,7 @@ export class ListNameWorkService {
     ): Promise<ListNameWork[]> {
         const listNameWorks = await this.getAllBy(
             {
-                criteria: { typeWorkId: +id },
+                criteria: { typeWorkId: +id, scopeWorkId: null },
                 relations: ['nameWorks'],
             },
             organizationId,
