@@ -635,6 +635,7 @@ export class ScopeWorkService {
         const findListCopy = JSON.parse(JSON.stringify(findList));
 
         const changedScopeWork = {
+            id: scopeWork.id,
             ...findListCopy[0],
             users: users,
             object: findObject,
