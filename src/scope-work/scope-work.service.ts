@@ -590,6 +590,7 @@ export class ScopeWorkService {
     // TODO не тестировался
 
     async getOneScopeWork(id: string, organizationId: number) {
+        console.log(id, organizationId);
         const scopeWork = await this.getScopeWorkBy(
             {
                 criteria: { id: +id },
@@ -597,6 +598,7 @@ export class ScopeWorkService {
             },
             organizationId,
         );
+
         const users = await this.userScopeWorkService.getAllUsersInScopeWork([
             scopeWork.id,
         ]);
@@ -632,11 +634,11 @@ export class ScopeWorkService {
         });
 
         const findList = await Promise.all(findListPromises);
-        const findListCopy = JSON.parse(JSON.stringify(findList));
+        // const findListCopy = JSON.parse(JSON.stringify(findList));
 
         const changedScopeWork = {
             id: scopeWork.id,
-            ...findListCopy[0],
+            // ...findListCopy[0],
             users: users,
             object: findObject,
             typeWork: findTypeWork,

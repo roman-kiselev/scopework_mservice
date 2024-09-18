@@ -152,6 +152,7 @@ export class ScopeWorkController {
     @ApiResponse({ type: HttpException })
     @Post('/edit')
     async updateScopeWork(@Body() dto: EditScopeWorkDto) {
+        console.log(dto);
         return await this.scopeWorkService.editScopeWork(dto);
     }
 
