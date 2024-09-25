@@ -1174,7 +1174,7 @@ ORDER BY nw.name ASC;
         nameWorks: NameWork,
         units: Unit[],
     ): IResQuickOneScopeWorkById {
-        const { id, name, nameList, tableAddingData } = nameWorks;
+        const { name, nameList, tableAddingData } = nameWorks;
         const mainCount = nameList.quntity;
         const countTableAddingData = tableAddingData.reduce((acc, item) => {
             return acc + item.quntity;

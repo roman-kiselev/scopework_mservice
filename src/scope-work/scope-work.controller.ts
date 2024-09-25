@@ -76,12 +76,8 @@ export class ScopeWorkController {
     @ApiResponse({ status: HttpStatus.OK, type: [IScopeworkShort] })
     @ApiResponse({ type: HttpException })
     @Get('/quickWithoutGroup/:id')
-    async quickOneScopeWorkById(
-        @Param('id') id: string,
-        @ActiveUser() user: ActiveUserData,
-    ) {
+    async quickOneScopeWorkById(@Param('id') id: string) {
         return await this.scopeWorkService.quickOneScopeWorkById(id);
-        // return this.scopeWorkService.quickOneScopeWorkByIdList(+id, user);
     }
 
     @ApiOperation({ summary: 'Быстрый запрос со списками' })
@@ -92,7 +88,6 @@ export class ScopeWorkController {
         @Param('id') id: string,
         @ActiveUser() user: ActiveUserData,
     ) {
-        // return await this.scopeWorkService.quickOneScopeWorkById(id);
         return this.scopeWorkService.quickOneScopeWorkByIdList(+id, user);
     }
 
