@@ -13,6 +13,7 @@ import { UserScopeWork } from './entities/user-scope-work.model';
 import { ScopeWorkUserService } from './scope-work-user.service';
 import { ScopeWorkController } from './scope-work.controller';
 import { ScopeWorkService } from './scope-work.service';
+import { UnitModule } from 'src/unit/unit.module';
 
 @Module({
     controllers: [ScopeWorkController],
@@ -41,6 +42,7 @@ import { ScopeWorkService } from './scope-work.service';
         forwardRef(() => NameListModule),
         forwardRef(() => ListNameWorkModule),
         TypeWorkModule,
+        UnitModule,
     ],
     exports: [
         ScopeWorkUserService,

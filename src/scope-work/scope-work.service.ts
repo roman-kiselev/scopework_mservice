@@ -11,15 +11,21 @@ import { ClientProxy } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/sequelize';
 import * as ExcelJS from 'exceljs';
 import { firstValueFrom } from 'rxjs';
-import sequelize, { QueryTypes } from 'sequelize';
+import sequelize, { Op, QueryTypes } from 'sequelize';
 import { DatabaseService } from 'src/database/database.service';
+import { ActiveUserData } from 'src/iam/interfaces/active-user-data.interface';
 import { User } from 'src/interfaces/users/user';
+import { ListNameWork } from 'src/list-name-work/entities/list-name-work.model';
 import { ListNameWorkService } from 'src/list-name-work/list-name-work.service';
+import { NameWork } from 'src/name-work/entities/name-work.model';
 import { NameListService } from 'src/name_list/name_list.service';
 import { IListNamesWithData } from 'src/objects/interfaces/IListNamesWithData';
 import { ObjectsService } from 'src/objects/objects.service';
+import { TableAddingData } from 'src/table-adding-data/entities/table-adding-data.model';
 import { TableAddingDataService } from 'src/table-adding-data/table-adding-data.service';
 import { TypeWorkService } from 'src/type-work/type-work.service';
+import { Unit } from 'src/unit/entities/unit.model';
+import { UnitService } from 'src/unit/unit.service';
 import * as stream from 'stream';
 import { CreateScopeWorkDto } from './dto/create/create-scope-work.dto';
 import { GetOneBy } from './dto/get/get-one-by.dto';
@@ -28,6 +34,7 @@ import { GetOneScopeworkResDto } from './dto/response/get-one-scopework-res.dto'
 import { EditScopeWorkDto } from './dto/update/edit-scope-work.dto';
 import { ScopeWork } from './entities/scope-work.model';
 import { UserScopeWork } from './entities/user-scope-work.model';
+import { IResQuickList } from './interfaces/IResQuickList';
 import { IResQuickOneScopeWorkById } from './interfaces/IResQuickOneScopeWorkById';
 import { IResScopeWorkByUserAndObject } from './interfaces/IResScopeWorkByUserAndObject';
 import { IScopeworkShort } from './interfaces/IScopeworkShort';
@@ -52,6 +59,7 @@ export class ScopeWorkService {
         private readonly nameListService: NameListService,
         private readonly typeWorkService: TypeWorkService,
         private readonly userScopeWorkService: ScopeWorkUserService,
+        private readonly unitService: UnitService,
     ) {}
 
     async getScopeWorkBy(
@@ -1160,5 +1168,117 @@ ORDER BY nw.name ASC;
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
+    }
+
+    private countForOneList(
+        nameWorks: NameWork,
+        units: Unit[],
+    ): IResQuickOneScopeWorkById {
+        const { id, name, nameList, tableAddingData } = nameWorks;
+        const mainCount = nameList.quntity;
+        const countTableAddingData = tableAddingData.reduce((acc, item) => {
+            return acc + item.quntity;
+        }, 0);
+
+        const percent = (countTableAddingData / mainCount) * 100;
+        const remainderQuntity = mainCount - countTableAddingData;
+
+        return {
+            id: nameWorks.nameList.id,
+            nameWorkId: nameList.nameWorkId,
+            name: name,
+            unitId: nameWorks.unitId,
+            unitName: units.find((item) => item.id === nameWorks.unitId).name,
+            quntityMain: Number(mainCount.toFixed(2)),
+            quntityCompleted: Number(countTableAddingData.toFixed(2)),
+            remainderQuntity: Number(remainderQuntity.toFixed(2)),
+            percent: Number(percent.toFixed(1)),
+            listNameWorkId: nameList.listNameWorkId,
+        };
+    }
+
+    private async countObjectScopeWork(list: ListNameWork) {
+        const unitSet = new Set<number>();
+        list.nameWorks.forEach((item) => {
+            unitSet.add(item.unitId);
+        });
+        const unitArrPromise = [...unitSet.values()].map(async (item) => {
+            return this.unitService.getOneUnitBy(
+                {
+                    criteria: { id: item },
+                    relations: [],
+                },
+                list.organizationId,
+            );
+        });
+        const unitArr = await Promise.all(unitArrPromise);
+
+        console.log(JSON.parse(JSON.stringify(list.nameWorks)));
+        const newList = list.nameWorks.map((item) => {
+            return this.countForOneList(item, unitArr);
+        });
+        // console.log(JSON.parse(JSON.stringify(newList)));
+        return newList;
+    }
+
+    async quickOneScopeWorkByIdList(id: number, user: ActiveUserData) {
+        const sw = await this.scopeWorkRepository.findOne({
+            where: { id: id, organizationId: user.organizationId },
+            include: [
+                {
+                    model: ListNameWork,
+                    as: 'listNameWork',
+                    where: { deletedAt: null },
+                    include: [
+                        {
+                            model: NameWork,
+                            as: 'nameWorks',
+                            where: {
+                                deletedAt: null,
+                            },
+                            through: {
+                                as: 'nameList',
+                            },
+                            include: [
+                                {
+                                    model: TableAddingData,
+                                    as: 'tableAddingData',
+                                    where: {
+                                        deletedAt: null,
+                                        nameListId: {
+                                            [Op.eq]: sequelize.col(
+                                                'listNameWork.nameWorks.nameList.id',
+                                            ),
+                                        },
+                                    },
+                                    required: false,
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        });
+
+        const arr: IResQuickList[] = [];
+        for (const item of sw.listNameWork) {
+            const arrCount = await this.countObjectScopeWork(item);
+
+            arr.push({
+                id: item.id,
+                name: item.name,
+                description: item.description,
+                organizationId: item.organizationId,
+                deletedAt: item.deletedAt,
+                createdAt: item.createdAt,
+                updatedAt: item.updatedAt,
+                typeWorkId: item.typeWorkId,
+                scopeWorkId: item.scopeWorkId,
+                // oldList: item.nameWorks,
+                list: arrCount,
+            });
+        }
+
+        return arr;
     }
 }

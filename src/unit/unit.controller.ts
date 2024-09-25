@@ -33,6 +33,7 @@ import { UnitService } from './unit.service';
     RoleName.MASTER,
     RoleName.DEV,
     RoleName.DRIVER,
+    RoleName.WORKER,
 )
 @UseGuards(RolesGuard)
 @Controller('unit')
