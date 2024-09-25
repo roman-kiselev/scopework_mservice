@@ -35,7 +35,7 @@ import { NameWorkService } from './name-work.service';
 
 @ApiTags('Name-Work')
 @ApiBearerAuth()
-@Roles(RoleName.ADMIN, RoleName.MASTER, RoleName.MANAGER)
+@Roles(RoleName.ADMIN, RoleName.MASTER, RoleName.MANAGER, RoleName.WORKER)
 @UseGuards(RolesGuard)
 @Controller('name-work')
 export class NameWorkController {

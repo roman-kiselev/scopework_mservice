@@ -31,7 +31,7 @@ import { ScopeWorkService } from './scope-work.service';
 
 @ApiTags('Scope Work')
 @ApiBearerAuth()
-@Roles(RoleName.ADMIN, RoleName.MASTER)
+@Roles(RoleName.ADMIN, RoleName.MASTER, RoleName.WORKER)
 @UseGuards(RolesGuard)
 @Controller('scope-work')
 export class ScopeWorkController {
@@ -78,6 +78,17 @@ export class ScopeWorkController {
     @Get('/quickWithoutGroup/:id')
     async quickOneScopeWorkById(@Param('id') id: string) {
         return await this.scopeWorkService.quickOneScopeWorkById(id);
+    }
+
+    @ApiOperation({ summary: 'Быстрый запрос со списками' })
+    @ApiResponse({ status: HttpStatus.OK, type: [IScopeworkShort] })
+    @ApiResponse({ type: HttpException })
+    @Get('/quickWithGroup/:id')
+    async quickOneScopeWorkByIdLists(
+        @Param('id') id: string,
+        @ActiveUser() user: ActiveUserData,
+    ) {
+        return this.scopeWorkService.quickOneScopeWorkByIdList(+id, user);
     }
 
     @ApiOperation({ summary: 'Получить все для пользователя' })

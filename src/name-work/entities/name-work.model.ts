@@ -71,4 +71,6 @@ export class NameWork extends Model<NameWork, NameWorkAttr> {
     @ApiProperty({ type: () => [ListNameWork], description: 'Список работ' })
     @BelongsToMany(() => ListNameWork, () => NameList)
     listNameWorks: ListNameWork[];
+
+    nameList: NameList;
 }

@@ -442,7 +442,13 @@ export class NameListService {
                 organizationId,
             );
             listNames.push({
-                ...nameWork,
+                id: nameWork.id,
+                name: nameWork.name,
+                unitId: nameWork.unitId,
+                organizationId: nameWork.organizationId,
+                createdAt: nameWork.createdAt,
+                updatedAt: nameWork.updatedAt,
+                deletedAt: nameWork.deletedAt,
                 quntity,
                 nameListId: id,
             });

@@ -31,7 +31,7 @@ export class ItemRow {
 
     @ApiProperty({ example: 1, description: 'Количество' })
     @IsNotEmpty()
-    @IsNumber()
+    @Type(() => Number)
     quntity: number;
 }
 export class CreateListDto {
