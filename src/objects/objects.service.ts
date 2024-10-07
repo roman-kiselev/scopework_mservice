@@ -476,9 +476,9 @@ export class ObjectsService {
         const cacheKey = `oneObject:${idObject}`;
         const dataRedis = await this.redisService.get(cacheKey);
 
-        // if (dataRedis) {
-        //     return JSON.parse(dataRedis);
-        // }
+        if (dataRedis) {
+            return JSON.parse(dataRedis);
+        }
 
         const dataObject = await this.getOneBy(
             { criteria: { id: idObject }, relations: ['scopeWorks'] },
