@@ -47,7 +47,7 @@ export class ObjectsController {
     @ApiOperation({ summary: 'Получение всех объектов' })
     @ApiResponse({ status: HttpStatus.OK, type: [ObjectShortDataDto] })
     @ApiResponse({ status: HttpStatus.CONFLICT, type: ConflictException })
-    @Roles(RoleName.ADMIN)
+    @Roles(RoleName.ADMIN, RoleName.MASTER, RoleName.WORKER)
     @UseGuards(RolesGuard)
     @Get('/shortData')
     async getAllDataShort(@ActiveUser() user: ActiveUserData) {

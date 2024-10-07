@@ -61,14 +61,13 @@ export class ScopeWorkController {
     @ApiOperation({ summary: 'Получить все объёмы SQL' })
     @ApiResponse({ status: HttpStatus.OK, type: [IScopeworkShort] })
     @ApiResponse({ type: HttpException })
-    @Get('/getShort/:id')
+    @Get('/getShort/')
     async getShort(
-        @Param('id') id: string,
         @ActiveUser() user: ActiveUserData,
         @Query() queryDto: GetShortQueryDto,
     ) {
         return await this.scopeWorkService.getAllScopeWorkSqlShort(
-            id,
+            String(user.sub),
             user.organizationId,
             queryDto,
         );
