@@ -29,11 +29,13 @@ import { UnitService } from 'src/unit/unit.service';
 import * as stream from 'stream';
 import { CreateScopeWorkDto } from './dto/create/create-scope-work.dto';
 import { GetOneBy } from './dto/get/get-one-by.dto';
+import { GetShortQueryDto } from './dto/get/get-short-query.dto';
 import { HistoryTimelineDto } from './dto/get/history-timeline.dto';
 import { GetOneScopeworkResDto } from './dto/response/get-one-scopework-res.dto';
 import { EditScopeWorkDto } from './dto/update/edit-scope-work.dto';
 import { ScopeWork } from './entities/scope-work.model';
 import { UserScopeWork } from './entities/user-scope-work.model';
+import { HistoryTimelineWithUserId } from './interfaces/HistoryTimelineWithUserId';
 import { IResQuickList } from './interfaces/IResQuickList';
 import { IResQuickOneScopeWorkById } from './interfaces/IResQuickOneScopeWorkById';
 import { IResScopeWorkByUserAndObject } from './interfaces/IResScopeWorkByUserAndObject';
@@ -598,7 +600,6 @@ export class ScopeWorkService {
     // TODO не тестировался
 
     async getOneScopeWork(id: string, organizationId: number) {
-        console.log(id, organizationId);
         const scopeWork = await this.getScopeWorkBy(
             {
                 criteria: { id: +id },
@@ -901,62 +902,91 @@ export class ScopeWorkService {
      * @deprecated This method is deprecated and will be removed in the future.
      * Please use newMethod instead.
      */
-    async getAllScopeWorkSqlShort(id: string, organizationId: number) {
+    async getAllScopeWorkSqlShort(
+        id: string,
+        organizationId: number,
+        queryDto: GetShortQueryDto,
+    ) {
+        const conditionObjectName = `sw.nameObject = :objectName`;
+        const conditionNameTypework = `sw.nameTypework = :nameTypework`;
+
+        const conditions = [
+            'userId = :userId',
+            'organizationId = :organizationId',
+        ];
+
+        if (queryDto.onlyCompleted && !queryDto.onlyNotCompleted) {
+            conditions.push('sw.percent >= 100');
+        }
+        if (queryDto.onlyNotCompleted && !queryDto.onlyCompleted) {
+            conditions.push('sw.percent < 100');
+        }
+        if (queryDto.objectName) {
+            conditions.push(conditionObjectName);
+        }
+        if (queryDto.typeWorkName) {
+            conditions.push(conditionNameTypework);
+        }
+
+        const conditionsString = conditions.join(' AND ');
+
         const query2 = `
-      SELECT 
-      sw.id,
-      sw.deletedAt,
-      sw.nameTypework,
-      sw.nameObject,
-      sw.sum,
-      sw.sumCurrent,
-      sw.percent,
-      sw.organizationId
-  FROM
-      \`${process.env.MYSQL_DATABASE}\`.\`user-scope-work\` usw
-          INNER JOIN
-      (SELECT 
-              sw.id,
-              sw.deletedAt,
-              sw.organizationId,
-              tw.name AS nameTypework,
-              obj.name AS nameObject,
-              SUM(sumSw.t1Quntity) AS sum,
-              SUM(sumSw.t2Quntity) AS sumCurrent,
-              ROUND(sumSw.t2Quntity / sumSw.t1Quntity * 100, 1) AS percent
+          SELECT
+          sw.id,
+          sw.deletedAt,
+          sw.nameTypework,
+          sw.nameObject,
+          sw.sum,
+          sw.sumCurrent,
+          sw.percent,
+          sw.organizationId
       FROM
-          \`${process.env.MYSQL_DATABASE}\`.scope_work AS sw
-      LEFT JOIN (SELECT 
-         \`${process.env.MYSQL_DATABASE}\`.\`scope_work\`.id AS scope_workId,
-              SUM(t1.quntity) AS t1Quntity,
-              SUM(t2.quntitySum) AS t2Quntity
-      FROM
-          \`${process.env.MYSQL_DATABASE}\`.\`scope_work\`
-      LEFT JOIN \`${process.env.MYSQL_DATABASE}\`.\`list_name_work\` lnw ON lnw.scopeWorkId = \`${process.env.MYSQL_DATABASE}\`.\`scope_work\`.id
-      LEFT JOIN (SELECT 
-          listNameWorkId, ROUND(SUM(quntity), 1) AS quntity
-      FROM
-          \`${process.env.MYSQL_DATABASE}\`.\`name-list\`
-      GROUP BY \`${process.env.MYSQL_DATABASE}\`.\`name-list\`.listNameWorkId) t1 ON t1.listNameWorkId = lnw.id
-      LEFT JOIN (SELECT 
-          SUM(tad.quntity) AS quntitySum,
-              nl.listNameWorkId AS listNameWorkId
-      FROM
-          \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\` tad
-      LEFT JOIN \`${process.env.MYSQL_DATABASE}\`.\`name-list\` nl ON nl.id = tad.nameListId
+          \`${process.env.MYSQL_DATABASE}\`.\`user-scope-work\` usw
+              INNER JOIN
+          (SELECT
+                  sw.id,
+                  sw.deletedAt,
+                  sw.organizationId,
+                  tw.name AS nameTypework,
+                  obj.name AS nameObject,
+                  SUM(sumSw.t1Quntity) AS sum,
+                  SUM(sumSw.t2Quntity) AS sumCurrent,
+                  ROUND(sumSw.t2Quntity / sumSw.t1Quntity * 100, 1) AS percent
+          FROM
+              \`${process.env.MYSQL_DATABASE}\`.scope_work AS sw
+          LEFT JOIN (SELECT
+             \`${process.env.MYSQL_DATABASE}\`.\`scope_work\`.id AS scope_workId,
+                  SUM(t1.quntity) AS t1Quntity,
+                  SUM(t2.quntitySum) AS t2Quntity
+          FROM
+              \`${process.env.MYSQL_DATABASE}\`.\`scope_work\`
+          LEFT JOIN \`${process.env.MYSQL_DATABASE}\`.\`list_name_work\` lnw ON lnw.scopeWorkId = \`${process.env.MYSQL_DATABASE}\`.\`scope_work\`.id
+          LEFT JOIN (SELECT
+              listNameWorkId, ROUND(SUM(quntity), 1) AS quntity
+          FROM
+              \`${process.env.MYSQL_DATABASE}\`.\`name-list\`
+          GROUP BY \`${process.env.MYSQL_DATABASE}\`.\`name-list\`.listNameWorkId) t1 ON t1.listNameWorkId = lnw.id
+          LEFT JOIN (SELECT
+              SUM(tad.quntity) AS quntitySum,
+                  nl.listNameWorkId AS listNameWorkId
+          FROM
+              \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\` tad
+          LEFT JOIN \`${process.env.MYSQL_DATABASE}\`.\`name-list\` nl ON nl.id = tad.nameListId
+          WHERE
+              tad.deletedAt IS NULL
+          GROUP BY listNameWorkId) t2 ON t2.listNameWorkId = lnw.id
+          GROUP BY \`${process.env.MYSQL_DATABASE}\`.\`scope_work\`.id) sumSw ON sumSw.scope_workId = sw.id
+          INNER JOIN \`${process.env.MYSQL_DATABASE}\`.type_work tw ON tw.id = sw.typeWorkId
+          INNER JOIN \`${process.env.MYSQL_DATABASE}\`.objects obj ON obj.id = sw.objectId
+          GROUP BY id) sw ON sw.id = usw.scopeWorkId
       WHERE
-          tad.deletedAt IS NULL
-      GROUP BY listNameWorkId) t2 ON t2.listNameWorkId = lnw.id
-      GROUP BY \`${process.env.MYSQL_DATABASE}\`.\`scope_work\`.id) sumSw ON sumSw.scope_workId = sw.id
-      INNER JOIN \`${process.env.MYSQL_DATABASE}\`.type_work tw ON tw.id = sw.typeWorkId
-      INNER JOIN \`${process.env.MYSQL_DATABASE}\`.objects obj ON obj.id = sw.objectId
-      GROUP BY id) sw ON sw.id = usw.scopeWorkId
-  WHERE
-      userId = :userId AND organizationId = :organizationId;
-      `;
+          ${conditionsString};`;
+
         const replacements = {
             userId: id,
             organizationId: organizationId,
+            objectName: queryDto.objectName,
+            nameTypework: queryDto.typeWorkName,
         };
 
         const data: IScopeworkShort[] =
@@ -972,20 +1002,17 @@ export class ScopeWorkService {
      * @deprecated This method is deprecated and will be removed in the future.
      * Please use newMethod instead.
      */
-    async getHistoryTimeline(dto: HistoryTimelineDto) {
+    async getHistoryTimeline(
+        dto: HistoryTimelineDto,
+        organizationId: number,
+    ): Promise<ResHistoryTimeline[]> {
         try {
-            // const query = `
-            // SELECT *
-            // FROM scopework.\`table-adding-data\` tad
-            // WHERE tad.scopeWorkId = :idScopeWork AND tad.createdAt BETWEEN :dateFrom AND :dateTo AND tad.deletedAt IS NULL
-            // ORDER BY tad.createdAt ASC;
-            // `;
             const query2 = `
       SELECT 
 	tad.scopeWorkId as scopeWorkId,
   tad.createdAt as createdAt,
     tad.nameListId as nameListId,
-    CONCAT(ud.lastname, ' ' ,ud.firstname) as userName,
+    tad.userId as userId,
     SUM(tad.quntity) as quntity,
     sw.name as nameTypeWork,
     nw.name as nameWork,
@@ -1009,14 +1036,13 @@ FROM
         INNER JOIN 
         \`${process.env.MYSQL_DATABASE}\`.unit u ON u.id = \`${process.env.MYSQL_DATABASE}\`.\`name_work\`.unitId
     ) nw ON nw.id = tad.nameWorkId
-    INNER JOIN
-    \`${process.env.MYSQL_DATABASE}\`.\`user-description\` ud ON ud.userId = tad.userId
+    
 WHERE
     tad.scopeWorkId = :idScopeWork
         AND tad.createdAt BETWEEN :dateFrom AND :dateTo
         AND tad.deletedAt IS NULL
         AND tad.quntity IS NOT NULL
-        GROUP BY tad.scopeWorkId, tad.nameListId, tad.createdAt,ud.lastname, ud.firstname, sw.name, nw.name, nw.unitName
+        GROUP BY tad.scopeWorkId, tad.nameListId,tad.userId, tad.createdAt, sw.name, nw.name, nw.unitName
 ORDER BY nameWork ASC;
       `;
 
@@ -1026,19 +1052,38 @@ ORDER BY nameWork ASC;
                 dateTo: dto.dateTo,
             };
 
-            // const data: ResHistoryTimeline[] =
-            //   await this.scopeWorkRepository.sequelize.query(query2, {
-            //     type: QueryTypes.SELECT,
-            //     replacements,
-            //   });
+            const listUsers: User[] = await firstValueFrom(
+                this.clientUsers.send('get-all-users-with', {
+                    organizationId: organizationId,
+                    relations: ['description'],
+                }),
+            );
 
-            const data: ResHistoryTimeline[] =
+            const data: HistoryTimelineWithUserId[] =
                 await this.databaseService.executeQuery(query2, replacements);
 
-            //const data = await this.scopeWorkRepository.findAll();
-
-            return data;
+            return data.map((item) => {
+                return {
+                    scopeWorkId: item.scopeWorkId,
+                    createdAt: item.createdAt,
+                    nameListId: item.nameListId,
+                    userId: item.userId,
+                    quntity: item.quntity,
+                    nameTypeWork: item.nameTypeWork,
+                    nameWork: item.nameWork,
+                    unitName: item.unitName,
+                    userName: listUsers
+                        .filter((user) => user.id === item.userId)
+                        .map(
+                            (user) =>
+                                user.description.firstname +
+                                ' ' +
+                                user.description.lastname,
+                        )[0],
+                };
+            });
         } catch (e) {
+            console.log(e);
             if (e instanceof HttpException) {
                 throw e;
             }
@@ -1055,10 +1100,10 @@ ORDER BY nameWork ASC;
      */
     async createExcelForScopeWork(
         dto: HistoryTimelineDto,
+        organizationId: number,
     ): Promise<stream.Readable> {
         try {
-            //
-            const data = await this.getHistoryTimeline(dto);
+            const data = await this.getHistoryTimeline(dto, organizationId);
             if (data) {
                 const workbook = new ExcelJS.Workbook();
                 const worksheet = workbook.addWorksheet('Sheet 1');
@@ -1213,11 +1258,10 @@ ORDER BY nw.name ASC;
         });
         const unitArr = await Promise.all(unitArrPromise);
 
-        console.log(JSON.parse(JSON.stringify(list.nameWorks)));
         const newList = list.nameWorks.map((item) => {
             return this.countForOneList(item, unitArr);
         });
-        // console.log(JSON.parse(JSON.stringify(newList)));
+
         return newList;
     }
 

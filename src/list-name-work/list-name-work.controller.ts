@@ -8,19 +8,25 @@ import {
     Param,
     Patch,
     Post,
+    UseGuards,
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
+    ApiBody,
     ApiOperation,
     ApiResponse,
     ApiTags,
 } from '@nestjs/swagger';
+import { RolesGuard } from 'src/iam/authorization/guards/roles/roles.guard';
 import { ActiveUser } from 'src/iam/decorators/active-user.decorator';
+import { Roles } from 'src/iam/decorators/roles-auth.decorator';
+import { RoleName } from 'src/iam/enums/RoleName';
 import { ActiveUserData } from 'src/iam/interfaces/active-user-data.interface';
 import { CreateListDto } from './dto/create/create-list.dto';
 import { ListNameWorkShortDto } from './dto/response/list-name-work-short.dto';
 import { ListNameWorkFullDto } from './dto/response/list-name-work.dto';
 import { ListNameWorkEditDto } from './dto/update/list-name-work-edit.dto';
+import { UnpinListNameWorkDto } from './dto/update/unpin-list-name-work.dto';
 import { ListNameWork } from './entities/list-name-work.model';
 import { ListNameWorkService } from './list-name-work.service';
 
@@ -103,6 +109,21 @@ export class ListNameWorkController {
         @ActiveUser() user: ActiveUserData,
     ) {
         return this.listNameWorkService.createList(dto, user.organizationId);
+    }
+
+    @Roles(RoleName.ADMIN)
+    @UseGuards(RolesGuard)
+    @Patch('/unpin-list/:id')
+    @ApiOperation({ summary: 'Открепление списка' })
+    @ApiResponse({ status: HttpStatus.OK, type: ListNameWorkFullDto })
+    @ApiResponse({ type: HttpException })
+    @ApiBody({ type: UnpinListNameWorkDto })
+    unpinList(
+        @Param('id') id: string,
+        @Body() dto: UnpinListNameWorkDto,
+        @ActiveUser() user: ActiveUserData,
+    ) {
+        return this.listNameWorkService.unpinList(user, dto, +id);
     }
 
     @ApiOperation({ summary: 'Редактирование' })

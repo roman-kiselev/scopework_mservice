@@ -9,7 +9,7 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/sequelize';
 import { firstValueFrom } from 'rxjs';
-import { Op, QueryTypes, Sequelize } from 'sequelize';
+import sequelize, { Op, QueryTypes, Sequelize } from 'sequelize';
 import { NameWorkService } from 'src/name-work/name-work.service';
 import { ScopeWorkService } from 'src/scope-work/scope-work.service';
 import { UnitService } from 'src/unit/unit.service';
@@ -331,6 +331,16 @@ export class TableAddingDataService {
      * @deprecated This method is deprecated and will be removed in the future.
      * Please use newMethod instead.
      */
+
+    // export interface IDataGetHistoryForNameWorkId {
+    //     id: number;
+    //     quntity: number;
+    //     userId: number;
+    //     createdAt: Date;
+    //     deletedAt: Date | null;
+    //     delCandidate: number | null;
+    // }
+
     async getHistoryForNameWorkId(organizatonId: number, params: IGetHistory) {
         const isScopeWork = await this.scopeWorkService.getScopeWorkBy(
             {
@@ -351,19 +361,19 @@ export class TableAddingDataService {
                 'createdAt',
                 'deletedAt',
                 'userId',
-                // [sequelize.col('del_table_adding_data'), 'delCandidate'],
+                [sequelize.col(`delTableAddingData.id`), 'delCandidate'],
             ],
             include: [
                 {
                     model: DelTableAddingData,
-                    //as: 'del_table_adding_data',
+                    as: `delTableAddingData`,
                     required: false,
                     where: {
                         deletedAt: {
                             [Op.is]: null,
                         },
                     },
-                    attributes: [],
+                    attributes: ['id'],
                 },
             ],
             where: {
@@ -373,38 +383,6 @@ export class TableAddingDataService {
             },
             order: [['createdAt', 'ASC']],
         });
-
-        //         const query = `
-        //       SELECT
-        //       \`table-adding-data\`.id,
-        //       \`user-description\`.firstname AS \`firstname\`,
-        //       \`user-description\`.lastname AS \`lastname\`,
-        //       \`table-adding-data\`.quntity,
-        //       \`table-adding-data\`.createdAt,
-        //       \`table-adding-data\`.deletedAt,
-        //       \`del_table_adding_data\`.id AS \`delCandidate\`
-        //   FROM
-        //       \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`
-        //           INNER JOIN
-        //       \`user-description\` ON \`user-description\`.userId = \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`.userId
-        //           LEFT JOIN
-        //       \`del_table_adding_data\` ON \`del_table_adding_data\`.tableAddingDataId = \`${process.env.MYSQL_DATABASE}\`.\`table-adding-data\`.id
-        //           AND \`del_table_adding_data\`.deletedAt IS NULL
-        //   WHERE
-        //               nameWorkId = :nameWorkId AND nameListId = :nameListId
-        //               ORDER BY createdAt ASC;
-        //       `;
-        //         const replacements = {
-        //             nameListId: params.nameListId,
-        //             nameWorkId: params.nameWorkId,
-        //             scopeWorkId: params.scopeWorkId,
-        //         };
-
-        //         const data: IDataGetHistoryForNameWorkId[] =
-        //             await this.tableAddingDataRepository.sequelize.query(query, {
-        //                 type: QueryTypes.SELECT,
-        //                 replacements,
-        //             });
 
         return result;
     }
@@ -533,6 +511,62 @@ export class TableAddingDataService {
         delTableAddingData.deletedAt = new Date();
         const result = await delTableAddingData.save();
 
+        return result;
+    }
+
+    async softDel(nameListId: number) {
+        const result = await this.tableAddingDataRepository.update(
+            {
+                deletedAt: new Date(),
+            },
+            {
+                where: { nameListId: nameListId },
+            },
+        );
+        return result;
+    }
+
+    async softDelForArray(nameListIds: number[]) {
+        const result = await this.tableAddingDataRepository.update(
+            {
+                deletedAt: new Date(),
+            },
+            {
+                where: {
+                    nameListId: {
+                        [Op.in]: nameListIds,
+                    },
+                },
+            },
+        );
+        return result;
+    }
+
+    async restore(nameListId: number) {
+        const result = await this.tableAddingDataRepository.update(
+            {
+                deletedAt: null,
+            },
+            {
+                where: { nameListId: nameListId },
+            },
+        );
+        return result;
+    }
+
+    async restoreForArray(nameListIds: number[]) {
+        const result = await this.tableAddingDataRepository.update(
+            {
+                deletedAt: null,
+            },
+            {
+                where: {
+                    nameListId: {
+                        [Op.in]: nameListIds,
+                    },
+                },
+            },
+        );
         return result;
     }
 }

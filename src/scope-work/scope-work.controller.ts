@@ -23,6 +23,7 @@ import { Roles } from 'src/iam/decorators/roles-auth.decorator';
 import { RoleName } from 'src/iam/enums/RoleName';
 import { ActiveUserData } from 'src/iam/interfaces/active-user-data.interface';
 import { CreateScopeWorkDto } from './dto/create/create-scope-work.dto';
+import { GetShortQueryDto } from './dto/get/get-short-query.dto';
 import { GetOneScopeworkResDto } from './dto/response/get-one-scopework-res.dto';
 import { EditScopeWorkDto } from './dto/update/edit-scope-work.dto';
 import { ScopeWork } from './entities/scope-work.model';
@@ -64,11 +65,12 @@ export class ScopeWorkController {
     async getShort(
         @Param('id') id: string,
         @ActiveUser() user: ActiveUserData,
+        @Query() queryDto: GetShortQueryDto,
     ) {
-        console.log(id, user.organizationId);
         return await this.scopeWorkService.getAllScopeWorkSqlShort(
             id,
             user.organizationId,
+            queryDto,
         );
     }
 
@@ -114,12 +116,16 @@ export class ScopeWorkController {
         @Query('dateFrom') dateFrom: string,
         @Query('dateTo') dateTo: string,
         @Res() res: Response,
+        @ActiveUser() user: ActiveUserData,
     ) {
-        const fileStream = await this.scopeWorkService.createExcelForScopeWork({
-            idScopeWork: +id,
-            dateFrom,
-            dateTo,
-        });
+        const fileStream = await this.scopeWorkService.createExcelForScopeWork(
+            {
+                idScopeWork: +id,
+                dateFrom,
+                dateTo,
+            },
+            user.organizationId,
+        );
 
         res.setHeader('Content-Type', 'application/vnd.openxmlformats');
         res.setHeader(
@@ -163,7 +169,6 @@ export class ScopeWorkController {
     @ApiResponse({ type: HttpException })
     @Post('/edit')
     async updateScopeWork(@Body() dto: EditScopeWorkDto) {
-        console.log(dto);
         return await this.scopeWorkService.editScopeWork(dto);
     }
 

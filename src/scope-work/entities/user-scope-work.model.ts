@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, DataType, Model, Table } from 'sequelize-typescript';
+import {
+    Column,
+    DataType,
+    ForeignKey,
+    Model,
+    Table,
+} from 'sequelize-typescript';
+import { ScopeWork } from './scope-work.model';
 
 interface UserScopeWorkAttr {
     userId: number;
@@ -22,5 +29,6 @@ export class UserScopeWork extends Model<UserScopeWork, UserScopeWorkAttr> {
 
     @ApiProperty({ example: '1', description: 'Идентификатор объёма работы' })
     @Column({ type: DataType.INTEGER })
+    @ForeignKey(() => ScopeWork)
     scopeWorkId: number;
 }

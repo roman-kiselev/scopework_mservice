@@ -8,14 +8,17 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { ActiveUserData } from 'src/iam/interfaces/active-user-data.interface';
 import { Item } from 'src/name_list/dto/create/create-name-list-by-name.dto';
 import { CreateNameListDto } from 'src/name_list/dto/create/create-name-list.dto';
 import { NameList } from 'src/name_list/entities/name-list.model';
 import { NameListService } from 'src/name_list/name_list.service';
+import { TableAddingDataService } from 'src/table-adding-data/table-adding-data.service';
 import { CreateListDto } from './dto/create/create-list.dto';
 import { GetOneListNameWorkByDto } from './dto/get/get-one-list-namework-by.dto';
 import { ListNameWorkFullDto } from './dto/response/list-name-work.dto';
 import { ListNameWorkEditDto } from './dto/update/list-name-work-edit.dto';
+import { UnpinListNameWorkDto } from './dto/update/unpin-list-name-work.dto';
 import { ListNameWork } from './entities/list-name-work.model';
 
 @Injectable()
@@ -25,6 +28,7 @@ export class ListNameWorkService {
         private listNameWorkRepository: typeof ListNameWork,
         @Inject(forwardRef(() => NameListService))
         private nameListService: NameListService,
+        private tableAddingDataService: TableAddingDataService,
     ) {}
 
     async getOneBy(
@@ -449,5 +453,29 @@ export class ListNameWorkService {
         return result;
     }
 
-    // Получим список наименований в одном списке по id списка
+    async unpinList(
+        user: ActiveUserData,
+        { scopeWorkId }: UnpinListNameWorkDto,
+        id: number,
+    ) {
+        const list = await this.getOneBy(
+            { criteria: { id, scopeWorkId: scopeWorkId }, relations: [] },
+            user.organizationId,
+        );
+        list.scopeWorkId = null;
+        const nameList = await this.nameListService.getAllBy(
+            {
+                criteria: { listNameWorkId: list.id },
+                relations: [],
+            },
+            list.id,
+            user.organizationId,
+        );
+
+        const nameListIds = nameList.map((item) => item.id);
+        await this.tableAddingDataService.softDelForArray(nameListIds);
+
+        await list.save();
+        return list;
+    }
 }

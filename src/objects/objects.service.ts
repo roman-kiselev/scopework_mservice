@@ -21,7 +21,6 @@ import { CreateAssignDto } from './dto/create/create-assign.dto';
 import { CreateObjectDto } from './dto/create/create-object.dto';
 import { GetOneDto } from './dto/get/get-one-by.dto';
 import { Objects } from './entities/objects.model';
-import { IOneScopeWorkWithData } from './interfaces/IOneScopeWorkWithData';
 
 @Injectable()
 export class ObjectsService {
@@ -477,9 +476,9 @@ export class ObjectsService {
         const cacheKey = `oneObject:${idObject}`;
         const dataRedis = await this.redisService.get(cacheKey);
 
-        if (dataRedis) {
-            return JSON.parse(dataRedis);
-        }
+        // if (dataRedis) {
+        //     return JSON.parse(dataRedis);
+        // }
 
         const dataObject = await this.getOneBy(
             { criteria: { id: idObject }, relations: ['scopeWorks'] },
@@ -619,8 +618,12 @@ export class ObjectsService {
             organizationId,
         );
 
-        const objectData: IOneScopeWorkWithData[] =
-            await this.getFullDataForObject(idObject, organizationId);
+        // const objectData: IOneScopeWorkWithData[] =
+        //     await this.getFullDataForObject(idObject, organizationId);
+        const objectData = await this.getFullDataForObject(
+            idObject,
+            organizationId,
+        );
 
         let countListNameWorksObject = 0;
         let countTableAddingDataObject = 0;
