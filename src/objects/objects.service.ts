@@ -21,7 +21,6 @@ import { CreateAssignDto } from './dto/create/create-assign.dto';
 import { CreateObjectDto } from './dto/create/create-object.dto';
 import { GetOneDto } from './dto/get/get-one-by.dto';
 import { Objects } from './entities/objects.model';
-import { IOneScopeWorkWithData } from './interfaces/IOneScopeWorkWithData';
 
 @Injectable()
 export class ObjectsService {
@@ -619,8 +618,12 @@ export class ObjectsService {
             organizationId,
         );
 
-        const objectData: IOneScopeWorkWithData[] =
-            await this.getFullDataForObject(idObject, organizationId);
+        // const objectData: IOneScopeWorkWithData[] =
+        //     await this.getFullDataForObject(idObject, organizationId);
+        const objectData = await this.getFullDataForObject(
+            idObject,
+            organizationId,
+        );
 
         let countListNameWorksObject = 0;
         let countTableAddingDataObject = 0;

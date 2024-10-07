@@ -11,6 +11,7 @@ import { ListNameWork } from 'src/list-name-work/entities/list-name-work.model';
 import { Objects } from 'src/objects/entities/objects.model';
 import { TableAddingData } from 'src/table-adding-data/entities/table-adding-data.model';
 import { TypeWork } from 'src/type-work/entities/type-work.model';
+import { UserScopeWork } from './user-scope-work.model';
 
 // interface ScopeWorkAttr {
 //   number: number;
@@ -67,4 +68,11 @@ export class ScopeWork extends Model<ScopeWork> {
     })
     @HasMany(() => TableAddingData)
     tableAddingData: TableAddingData[];
+
+    @ApiProperty({
+        type: () => [UserScopeWork],
+        description: 'Таблица данных пользователей',
+    })
+    @HasMany(() => UserScopeWork, { sourceKey: 'id' })
+    userScopeWork: UserScopeWork[];
 }
