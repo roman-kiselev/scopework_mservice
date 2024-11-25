@@ -951,7 +951,7 @@ export class ScopeWorkService {
                   obj.name AS nameObject,
                   SUM(sumSw.t1Quntity) AS sum,
                   SUM(sumSw.t2Quntity) AS sumCurrent,
-                  ROUND(sumSw.t2Quntity / sumSw.t1Quntity * 100, 1) AS percent
+                  ROUND(sumSw.t2Quntity / sumSw.t1Quntity * 100, 2) AS percent
           FROM
               \`${process.env.MYSQL_DATABASE}\`.scope_work AS sw
           LEFT JOIN (SELECT

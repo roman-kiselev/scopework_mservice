@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Устанавливаем зависимости
-RUN npm install --force
+RUN npm install
 
 # Копируем все остальные файлы в рабочую директорию
 COPY . .
