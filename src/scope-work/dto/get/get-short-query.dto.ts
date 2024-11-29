@@ -19,4 +19,17 @@ export class GetShortQueryDto {
     @IsOptional()
     @IsString()
     typeWorkName?: string;
+
+    @IsOptional()
+    @IsString()
+    isDel?: boolean;
+
+    static getObj(dto: GetShortQueryDto) {
+        return {
+            onlyCompleted: dto.onlyCompleted,
+            onlyNotCompleted: dto.onlyNotCompleted,
+            objectName: dto.objectName,
+            typeWorkName: dto.typeWorkName,
+        };
+    }
 }

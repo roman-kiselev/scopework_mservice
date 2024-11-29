@@ -998,6 +998,133 @@ export class ScopeWorkService {
         return data;
     }
 
+    async getAllScopeWorkSqlShortDublicat(
+        id: string,
+        organizationId: number,
+        queryDto: GetShortQueryDto,
+    ) {
+        const conditionObjectName = `sw2.nameObject = :objectName`;
+        const conditionNameTypework = `sw2.nameTypework = :nameTypework`;
+
+        const conditions = [
+            // 'userId = :userId',
+            // 'organizationId = :organizationId',
+        ];
+
+        if (queryDto.onlyCompleted && !queryDto.onlyNotCompleted) {
+            conditions.push('percent >= 100.00');
+        }
+        if (queryDto.onlyNotCompleted && !queryDto.onlyCompleted) {
+            conditions.push('percent < 100.00');
+        }
+        if (queryDto.objectName) {
+            conditions.push(conditionObjectName);
+        }
+        if (queryDto.typeWorkName) {
+            conditions.push(conditionNameTypework);
+        }
+        if (queryDto.isDel) {
+            conditions.push('isDel = :isDel');
+        }
+
+        const conditionsString = conditions.join(' AND ');
+
+        const query2 = `
+          SELECT
+    sw2.id,
+    sw2.nameTypeWork,
+    sw2.nameObject,
+    IFNULL(sw2.isDel, false) as isDel,
+    -- sw2.listNameWorkName,
+    -- sw2.listNameWorkDescription,
+    -- sw2.listNameWorkId,
+    -- ROUND(sw2.quntity, 2) as quntity,
+    -- ROUND(sw2.tadQuntity, 2) as tadQuntity,
+    ROUND(sw2.quntity, 2) as sum,
+    ROUND(sw2.tadQuntity, 2) as sumCurrent,
+    ROUND(sw2.remains, 2) as remains,
+    ROUND(sw2.verfulfilment, 2) as verfulfilment,
+    ROUND(sw2.percent, 2) as totalPercentage,
+    ROUND(
+        IF(
+            sw2.verfulfilment = 0,
+            IF(
+                sw2.quntity = 0,
+                0,
+                sw2.tadQuntity / sw2.quntity * 100
+            ),
+            (
+                sw2.tadQuntity - sw2.verfulfilment
+            ) / sw2.quntity * 100
+        ),
+        2
+    ) as percent
+FROM (
+            SELECT
+            sw.id as \`id\`, tw.name as \`nameTypeWork\`, o.name as \`nameObject\`, SUM(IFNULL(nl.quntity, 0)) as \`quntity\`,del.isDel, SUM(IFNULL(tad.quntity, 0)) as \`tadQuntity\`, SUM(
+                IF(
+                    IFNULL(nl.quntity, 0) > IFNULL(tad.quntity, 0), IFNULL(nl.quntity, 0) - IFNULL(tad.quntity, 0), 0
+                )
+            ) as remains, SUM(
+                IF(
+                    IFNULL(tad.quntity, 0) > IFNULL(nl.quntity, 0), IFNULL(tad.quntity, 0) - IFNULL(nl.quntity, 0), 0
+                )
+            ) as verfulfilment, SUM(IFNULL(tad.quntity, 0)) / SUM(IFNULL(nl.quntity, 0)) * 100 as percent
+        FROM
+            \`user-scope-work\` usw
+            LEFT JOIN scope_work sw ON sw.id = usw.\`scopeWorkId\`
+            AND sw.\`deletedAt\` IS NULL
+            LEFT JOIN objects o ON o.id = sw.\`objectId\`
+            LEFT JOIN type_work tw ON tw.id = sw.\`typeWorkId\`
+            LEFT JOIN list_name_work lnw ON lnw.\`scopeWorkId\` = sw.id
+            AND lnw.\`deletedAt\` IS NULL
+            LEFT JOIN \`name-list\` nl ON nl.\`listNameWorkId\` = lnw.id
+            AND nl.\`deletedAt\` IS NULL
+            LEFT JOIN (
+                SELECT tad2.\`userId\`, tad2.\`nameListId\`, tad2.\`deletedAt\`, SUM(tad2.quntity) as quntity
+                FROM \`table-adding-data\` tad2
+                GROUP BY
+                    tad2.\`nameListId\`, tad2.\`userId\`, tad2.\`deletedAt\`
+            ) tad ON tad.\`nameListId\` = nl.id
+            AND tad.\`deletedAt\` IS NULL
+            LEFT JOIN name_work nw ON nw.id = nl.\`nameWorkId\`
+            AND nw.\`deletedAt\` IS NULL
+            LEFT JOIN (
+                SELECT sw.id as scopeWorkId, IF(COUNT(*) = 0, false, true) as isDel
+                FROM
+                    scope_work sw
+                    LEFT JOIN \`table-adding-data\` tad ON tad.\`scopeWorkId\` = sw.id
+                    AND tad.\`deletedAt\` IS NULL
+                    LEFT JOIN \`user-scope-work\` usw ON usw.\`scopeWorkId\` = sw.id
+                    INNER JOIN del_table_adding_data dtad ON dtad.\`tableAddingDataId\` = tad.id
+                    AND dtad.\`deletedAt\` IS NULL
+                GROUP BY
+                    sw.id
+            ) as del ON del.\`scopeWorkId\` = sw.id
+        WHERE
+            usw.\`userId\` = :userId
+            AND sw.\`organizationId\` = :organizationId
+        GROUP BY
+            sw.id, o.name, tw.name
+    ) as sw2 ${conditions.length > 0 ? `HAVING ${conditionsString}` : ''};`;
+
+        const replacements = {
+            userId: id,
+            organizationId: organizationId,
+            objectName: queryDto.objectName,
+            nameTypework: queryDto.typeWorkName,
+            isDel: Boolean(queryDto.isDel),
+        };
+
+        const data: IScopeworkShort[] =
+            await this.scopeWorkRepository.sequelize.query(query2, {
+                type: QueryTypes.SELECT,
+                replacements,
+            });
+
+        return data;
+    }
+
     /**
      * @deprecated This method is deprecated and will be removed in the future.
      * Please use newMethod instead.
@@ -1213,6 +1340,72 @@ ORDER BY nw.name ASC;
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
+    }
+
+    async quickOneScopeWorkByIdDublicate(id: number) {
+        const query = `
+            SELECT
+    nl.id AS nameListId,
+    nl.\`listNameWorkId\` as listNameWorkId,
+    nl.nameWorkId AS nameWorkId,
+    nw.name,
+    u.id AS unitId,
+    u.name AS unitName,
+    IFNULL(nl.quntity, 0) as quntity,
+    IFNULL(tad.quntitySum, 0) as quntitySum,
+    IF(
+        IFNULL(nl.quntity, 0) > IFNULL(tad.quntitySum, 0),
+        IFNULL(nl.quntity, 0) - IFNULL(tad.quntitySum, 0),
+        0
+    ) as remains,
+    IF(
+        IFNULL(tad.quntitySum, 0) > IFNULL(nl.quntity, 0),
+        IFNULL(tad.quntitySum, 0) - IFNULL(nl.quntity, 0),
+        0
+    ) as verfulfilment,
+     ROUND(
+        COALESCE(
+            IFNULL(tad.quntitySum, 0) / IFNULL(nl.quntity, 0) * 100,
+            0
+        ),
+        2
+    ) as percent,
+    IFNULL(tad.isDel, 0) as isDel
+FROM
+    \`name-list\` nl
+    INNER JOIN list_name_work lnw ON lnw.id = nl.\`listNameWorkId\`
+    AND lnw.\`deletedAt\` IS NULL
+    INNER JOIN name_work nw ON nw.id = nl.\`nameWorkId\`
+    AND lnw.\`deletedAt\` IS NULL
+    LEFT JOIN (
+        SELECT tad.nameListId, IFNULL(SUM(tad.quntity), 0) AS quntitySum, IF(
+                COUNT(dtad.id) = 0, false, true
+            ) as isDel
+        FROM
+            \`table-adding-data\` tad
+            LEFT JOIN del_table_adding_data dtad ON dtad.\`tableAddingDataId\` = tad.id
+            AND dtad.\`deletedAt\` IS NULL
+        WHERE
+            tad.\`deletedAt\` IS NULL
+        GROUP BY
+            tad.nameListId
+    ) tad ON tad.\`nameListId\` = nl.id
+    INNER JOIN unit u ON nw.unitId = u.id
+WHERE
+    lnw.\`scopeWorkId\` = :scopeWorkId
+ORDER BY nw.name ASC;
+        `;
+
+        const replacements = {
+            scopeWorkId: id,
+        };
+
+        const data = await this.databaseService.executeQuery(
+            query,
+            replacements,
+        );
+
+        return data;
     }
 
     private countForOneList(

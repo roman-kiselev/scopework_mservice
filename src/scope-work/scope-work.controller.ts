@@ -66,7 +66,13 @@ export class ScopeWorkController {
         @ActiveUser() user: ActiveUserData,
         @Query() queryDto: GetShortQueryDto,
     ) {
-        return await this.scopeWorkService.getAllScopeWorkSqlShort(
+        // TODO Спустя время, удалить оставшийся метод
+        // return await this.scopeWorkService.getAllScopeWorkSqlShort(
+        //     String(user.sub),
+        //     user.organizationId,
+        //     queryDto,
+        // );
+        return await this.scopeWorkService.getAllScopeWorkSqlShortDublicat(
             String(user.sub),
             user.organizationId,
             queryDto,
@@ -78,7 +84,9 @@ export class ScopeWorkController {
     @ApiResponse({ type: HttpException })
     @Get('/quickWithoutGroup/:id')
     async quickOneScopeWorkById(@Param('id') id: string) {
-        return await this.scopeWorkService.quickOneScopeWorkById(id);
+        // TODO Спустя время, удалить оставшийся метод
+        // return await this.scopeWorkService.quickOneScopeWorkById(id);
+        return await this.scopeWorkService.quickOneScopeWorkByIdDublicate(+id);
     }
 
     @ApiOperation({ summary: 'Быстрый запрос со списками' })

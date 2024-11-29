@@ -1,10 +1,12 @@
 export class IScopeworkShort {
     id: number;
-    deletedAt: Date | null;
-    nameTypework: string;
     nameObject: string;
+    nameTypework: string;
+    remains: number;
     sum: number;
     sumCurrent: number;
-    remainder: number;
     percent: number;
+    totalPercentage: number;
+    verfulfilment: number;
+    isDel: boolean;
 }
