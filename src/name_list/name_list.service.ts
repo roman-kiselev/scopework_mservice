@@ -13,9 +13,12 @@ import { TableAddingDataService } from 'src/table-adding-data/table-adding-data.
 import { CreateNameListByNameDto } from './dto/create/create-name-list-by-name.dto';
 import { CreateNameListDto } from './dto/create/create-name-list.dto';
 
+import { DatabaseService } from 'src/database/database.service';
 import { ListNameWorkService } from 'src/list-name-work/list-name-work.service';
 import { GetAllByDto } from './dto/get/get-all-by.dto';
 import { GetDataProgressByListResponseDto } from './dto/response/get-data-progress-by-list-response.dto';
+import { GetOneNameListById } from './dto/response/get-one-name-list-by-id.dto';
+import { NameListEditDto } from './dto/update/name-list-edit.dto';
 import { NameList } from './entities/name-list.model';
 
 @Injectable()
@@ -26,6 +29,7 @@ export class NameListService {
         private readonly nameWorkService: NameWorkService,
         @Inject(forwardRef(() => ListNameWorkService))
         private readonly listNameWorkService: ListNameWorkService,
+        private readonly databaseService: DatabaseService,
     ) {}
 
     async getAllBy(
@@ -457,10 +461,61 @@ export class NameListService {
         return listNames;
     }
 
-    /**
-     * @deprecated This method is deprecated and will be removed in the future.
-     * Please use newMethod instead.
-     */
     // Создаём список из excel документа
     // async createListExcel() {}
+
+    async getOneNameListById(id: number, organizationId: number) {
+        const query = `
+            select
+                	nl.id,
+                	nl.quntity,
+                	nw.name,
+                	nw.unitId
+                from
+                	\`name-list\` nl
+                JOIN list_name_work lnw ON
+                	lnw.id = nl.listNameWorkId
+                	AND lnw.organizationId = :organizationId
+                	AND lnw.deletedAt IS NULL
+                JOIN name_work nw ON
+                	nw.id = nl.nameWorkId
+                	AND nw.deletedAt IS NULL
+                where
+                	nl.id = :id
+                	AND nl.deletedAt IS NULL;
+                `;
+        const replacements = {
+            id,
+            organizationId,
+        };
+
+        const result: GetOneNameListById[] =
+            await this.databaseService.executeQuery(query, replacements);
+
+        return result[0];
+    }
+
+    async editNameList(
+        id: number,
+        organizationId: number,
+        dto: NameListEditDto,
+    ) {
+        const nameList = await this.nameListRepository.findOne({
+            where: {
+                id,
+                deletedAt: null,
+            },
+        });
+
+        const isListNameWork = await this.listNameWorkService.getOneBy(
+            { criteria: { id: nameList.listNameWorkId }, relations: [] },
+            organizationId,
+        );
+
+        if (!isListNameWork) {
+            throw new BadRequestException('У вас нет доступа');
+        }
+
+        return await this.nameListRepository.update(dto, { where: { id } });
+    }
 }

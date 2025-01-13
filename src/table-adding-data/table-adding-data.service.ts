@@ -569,4 +569,17 @@ export class TableAddingDataService {
         );
         return result;
     }
+
+    async cancel(delTableAddingDataId: number, userId: number) {
+        try {
+            const result = await this.delTableAddingDataRepository.destroy({
+                where: { id: delTableAddingDataId, userId: userId },
+            });
+
+            return result;
+        } catch (error) {
+            console.error('Error saving TableAddingData:', error);
+            throw new BadRequestException('TableAddingData not deleted');
+        }
+    }
 }

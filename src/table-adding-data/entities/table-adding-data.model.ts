@@ -39,23 +39,29 @@ export class TableAddingData extends Model<
     })
     quntity: number;
 
+    @ApiProperty({ example: '12.01.2099', description: 'Дата удаления' })
     @Column({
         type: DataType.DATE,
     })
     deletedAt?: any;
 
+    @ApiProperty({ example: 1, description: 'id наименования' })
     @ForeignKey(() => NameWork)
     nameWorkId: number;
 
+    @ApiProperty({ example: 1, description: 'id списка' })
     @ForeignKey(() => NameList)
     nameListId: number;
 
+    @ApiProperty({ example: 1, description: 'id объёма' })
     @ForeignKey(() => ScopeWork)
     scopeWorkId: number;
 
+    @ApiProperty({ example: 1, description: 'id пользователя' })
     @Column({ type: DataType.INTEGER })
     userId: number;
 
+    @ApiProperty({ type: () => DelTableAddingData })
     @HasOne(() => DelTableAddingData)
     delTableAddingData: DelTableAddingData;
 }

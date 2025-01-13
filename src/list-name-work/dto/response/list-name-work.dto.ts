@@ -1,12 +1,15 @@
 import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
+import { IsNotEmpty } from 'class-validator';
 import { ListNameWork } from 'src/list-name-work/entities/list-name-work.model';
 import { NameWorkNameListDto } from 'src/name-work/dto/response/name-work-name-list.dto';
 
 export class ListNameWorkDto extends PartialType(ListNameWork) {
     @ApiProperty({ example: '22.01.2022', description: 'Время создания' })
+    @IsNotEmpty()
     createdAt: Date;
 
     @ApiProperty({ example: '22.01.2022', description: 'Время обновления' })
+    @IsNotEmpty()
     updatedAt: Date;
 }
 
@@ -17,6 +20,7 @@ export class ListNameWorkFullDto extends OmitType(ListNameWorkDto, [
         type: () => [NameWorkNameListDto],
         description: 'Список работ',
     })
+    @IsNotEmpty()
     nameWorks: NameWorkNameListDto[];
 }
 

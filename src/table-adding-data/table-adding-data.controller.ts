@@ -1,7 +1,9 @@
 import {
     Body,
     Controller,
+    Delete,
     Get,
+    HttpStatus,
     Param,
     Patch,
     Post,
@@ -21,6 +23,7 @@ import { RoleName } from 'src/iam/enums/RoleName';
 import { ActiveUserData } from 'src/iam/interfaces/active-user-data.interface';
 import { CreateDelTableDto } from './dto/create-deltable.dto';
 import { CreateTableAddingDatumDto } from './dto/create-table-adding-datum.dto';
+import { TableAddingData } from './entities/table-adding-data.model';
 import { IDataGetHistoryForNameWorkId } from './interfaces/IDataGetHistoryForNameWorkId';
 import { TableAddingDataService } from './table-adding-data.service';
 
@@ -31,11 +34,6 @@ export class TableAddingDataController {
     constructor(
         private readonly tableAddingDataService: TableAddingDataService,
     ) {}
-
-    @Post()
-    create(@Body() createTableAddingDatumDto: CreateTableAddingDatumDto) {
-        return this.tableAddingDataService.create(createTableAddingDatumDto);
-    }
 
     @Get()
     findAll() {
@@ -96,6 +94,13 @@ export class TableAddingDataController {
         return this.tableAddingDataService.createCandidateDel(dto, user.sub);
     }
 
+    @ApiOperation({ summary: 'Добавить данные' })
+    @ApiResponse({ status: HttpStatus.OK, type: TableAddingData })
+    @Post()
+    create(@Body() createTableAddingDatumDto: CreateTableAddingDatumDto) {
+        return this.tableAddingDataService.create(createTableAddingDatumDto);
+    }
+
     // TODO внести изменения
     // @Patch(':id')
     // update(
@@ -113,6 +118,12 @@ export class TableAddingDataController {
     @Patch('/remove/:id')
     remove(@Param('id') id: string, @ActiveUser() user: ActiveUserData) {
         return this.tableAddingDataService.remove(+id, user.organizationId);
+    }
+
+    @ApiOperation({ summary: 'Отменить удаление данных' })
+    @Delete('/cancel/:id')
+    cancel(@Param('id') id: string, @ActiveUser() user: ActiveUserData) {
+        return this.tableAddingDataService.cancel(+id, user.sub);
     }
 
     @Patch('/recovery/:id')

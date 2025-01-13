@@ -1210,7 +1210,6 @@ ORDER BY nameWork ASC;
                 };
             });
         } catch (e) {
-            console.log(e);
             if (e instanceof HttpException) {
                 throw e;
             }

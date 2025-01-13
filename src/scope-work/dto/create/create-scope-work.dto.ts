@@ -13,6 +13,8 @@ export class CreateScopeWorkDto {
     listNameWork: number[];
 
     @ApiProperty({ example: 1, description: 'id Объекта' })
+    @IsNotEmpty()
+    @IsNumber()
     objectId: number;
 
     @ApiProperty({ example: [1, 2], description: 'id Пользователя' })

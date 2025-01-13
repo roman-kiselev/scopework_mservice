@@ -1,12 +1,15 @@
 import {
+    BadRequestException,
     Body,
     Controller,
     Get,
     HttpException,
     HttpStatus,
     Param,
+    Patch,
     Post,
     Query,
+    UseGuards,
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
@@ -14,12 +17,18 @@ import {
     ApiResponse,
     ApiTags,
 } from '@nestjs/swagger';
+import { RolesGuard } from 'src/iam/authorization/guards/roles/roles.guard';
 import { ActiveUser } from 'src/iam/decorators/active-user.decorator';
+import { Roles } from 'src/iam/decorators/roles-auth.decorator';
+import { RoleName } from 'src/iam/enums/RoleName';
 import { ActiveUserData } from 'src/iam/interfaces/active-user-data.interface';
+import { IStatus } from 'src/interfaces/status/IStatus';
 import { CreateNameListDto } from './dto/create/create-name-list.dto';
 import { GetDataProgressByListDto } from './dto/get/get-data-progress-by-list.dto';
 import { GetDateForOneDto } from './dto/get/get-date-for-one.dto';
 import { GetDataForOneResponseDto } from './dto/response/get-data-for-one-response.dto';
+import { GetOneNameListById } from './dto/response/get-one-name-list-by-id.dto';
+import { NameListEditDto } from './dto/update/name-list-edit.dto';
 import { NameList } from './entities/name-list.model';
 import { NameListService } from './name_list.service';
 
@@ -86,5 +95,44 @@ export class NameListController {
     @Post('/')
     create(@Body() dto: CreateNameListDto) {
         return this.nameListService.create(dto);
+    }
+
+    @Roles(RoleName.ADMIN)
+    @UseGuards(RolesGuard)
+    @Patch('/edit/:id')
+    @ApiOperation({ summary: 'Редактирование' })
+    async edit(
+        @Param('id') id: string,
+        @ActiveUser() user: ActiveUserData,
+        @Body() dto: NameListEditDto,
+    ) {
+        try {
+            await this.nameListService.editNameList(
+                +id,
+                user.organizationId,
+                dto,
+            );
+
+            const result: IStatus = {
+                message: 'Успешно',
+                statusCode: HttpStatus.OK,
+            };
+
+            return result;
+        } catch (e) {
+            throw new BadRequestException(e.message);
+        }
+    }
+
+    @Roles(RoleName.ADMIN)
+    @UseGuards(RolesGuard)
+    @Get('/:id')
+    @ApiOperation({ summary: 'Получение одного значения' })
+    @ApiResponse({ status: HttpStatus.OK, type: GetOneNameListById })
+    getOneById(@Param('id') id: string, @ActiveUser() user: ActiveUserData) {
+        return this.nameListService.getOneNameListById(
+            +id,
+            user.organizationId,
+        );
     }
 }

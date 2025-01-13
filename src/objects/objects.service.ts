@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/sequelize';
+import { QueryTypes } from 'sequelize';
 import { ListNameWorkService } from 'src/list-name-work/list-name-work.service';
 import { NameListService } from 'src/name_list/name_list.service';
 import { RedisService } from 'src/redis/redis.service';
@@ -19,8 +20,13 @@ import { TableAddingDataService } from 'src/table-adding-data/table-adding-data.
 import { TypeWorkService } from 'src/type-work/type-work.service';
 import { CreateAssignDto } from './dto/create/create-assign.dto';
 import { CreateObjectDto } from './dto/create/create-object.dto';
+import { GetDataForRechartsQueryDto } from './dto/get/get-data-for-recharts-query.dto';
 import { GetOneDto } from './dto/get/get-one-by.dto';
+import { ObjectRechartsDataTypeWorkDto } from './dto/response/object-recharts-data-typework.dto';
+import { ObjectRechartsDataDto } from './dto/response/object-recharts-data.dto';
+import { ResDataForRechartsTypeworkDto } from './dto/response/res-data-for-recharts-typework.dto';
 import { Objects } from './entities/objects.model';
+import { IGetDataObjectsForRecharts } from './interfaces/IGetDataObjectsForRecharts';
 
 @Injectable()
 export class ObjectsService {
@@ -679,6 +685,116 @@ export class ObjectsService {
             mainListUserNoRepetitions,
             objectData,
         };
+    }
+
+    async getDataForRecharts(
+        organizationId: number,
+        queryParams: GetDataForRechartsQueryDto,
+    ) {
+        const replacements = {
+            organizationId,
+        };
+        const { rows, count } = await this.objectsRepository.findAndCountAll({
+            where: {
+                organizationId,
+            },
+            limit: Number(queryParams.limit),
+            offset:
+                (Number(queryParams.offset) - 1) * Number(queryParams.limit),
+        });
+
+        const getCountReplacements = {
+            ...replacements,
+            idOne: rows[0].id,
+            idTwo: rows[1].id,
+        };
+        const queryCount = `
+            SELECT o.id,o.name, IFNULL(YEAR(tad.\`createdAt\`), 0) as year, IFNULL(MONTHNAME(tad.\`createdAt\`), 0) as monthName, ROUND(
+        IFNULL(SUM(tad.quntity), 0), 2
+    ) as quntity
+FROM
+    objects o
+    LEFT JOIN scope_work sw ON sw.\`objectId\` = o.id
+    AND sw.\`deletedAt\` IS NULL
+    LEFT JOIN list_name_work lnw ON lnw.\`scopeWorkId\` = sw.id
+    AND lnw.\`deletedAt\` IS NULL
+    LEFT JOIN \`name-list\` nl ON nl.\`listNameWorkId\` = lnw.id
+    AND nl.\`deletedAt\` IS NULL
+    LEFT JOIN \`table-adding-data\` tad ON tad.\`nameListId\` = nl.id
+    AND tad.\`deletedAt\` IS NULL
+WHERE
+    o.organizationId = :organizationId AND o.id IN (:idOne, :idTwo)
+GROUP BY
+o.id,
+    o.name,
+    year,
+    monthName
+HAVING
+    year <> 0
+ORDER BY o.id ASC, o.name ASC, year ASC, monthName ASC;`;
+        const getCount: IGetDataObjectsForRecharts[] =
+            await this.objectsRepository.sequelize.query(queryCount, {
+                type: QueryTypes.SELECT,
+                replacements: getCountReplacements,
+            });
+        const newData = ObjectRechartsDataDto.getNewData(getCount);
+
+        return {
+            rows: newData,
+            count: count,
+        };
+    }
+
+    async getDataForRechartsTypeWorkForObjectId(
+        objectId: number,
+        organizationId: number,
+    ) {
+        const replacements = {
+            organizationId,
+            objectId,
+        };
+
+        const query = `
+            SELECT oo.id, oo.name, oo.typeWorkName, oo.quntity, oo.total_quntity, ROUND(
+        (
+            oo.quntity / oo.total_quntity * 100
+        ), 4
+    ) as percent
+FROM (
+        SELECT
+            o.id, o.name, tw.name as typeWorkName, ROUND(SUM(IFNULL(nl.quntity, 0)), 2) as quntity, ROUND(
+                SUM(SUM(IFNULL(nl.quntity, 0))) OVER (
+                    PARTITION BY
+                        o.id
+                ), 2
+            ) as total_quntity
+        FROM
+            objects o
+            LEFT JOIN scope_work sw ON sw.\`objectId\` = o.id
+            AND sw.\`deletedAt\` IS NULL
+            LEFT JOIN list_name_work lnw ON lnw.\`scopeWorkId\` = sw.id
+            AND lnw.\`deletedAt\` IS NULL
+            LEFT JOIN \`name-list\` nl ON nl.\`listNameWorkId\` = lnw.id
+            AND nl.\`deletedAt\` IS NULL
+            LEFT JOIN type_work tw ON tw.id = lnw.\`typeWorkId\`
+            AND tw.\`deletedAt\` IS NULL
+        WHERE
+            o.organizationId = :organizationId
+            AND o.id = :objectId
+            AND o.\`deletedAt\` IS NULL
+        GROUP BY
+            o.id, o.name, tw.name
+    ) as oo;
+        `;
+
+        const getCount: ResDataForRechartsTypeworkDto[] =
+            await this.objectsRepository.sequelize.query(query, {
+                type: QueryTypes.SELECT,
+                replacements,
+            });
+        const newData = ObjectRechartsDataTypeWorkDto.getData(getCount);
+
+        return newData[0];
     }
 }
 

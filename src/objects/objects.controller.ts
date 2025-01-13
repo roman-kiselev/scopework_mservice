@@ -4,10 +4,11 @@ import {
     Get,
     HttpException,
     HttpStatus,
+    ParseIntPipe,
     Post,
 } from '@nestjs/common';
 import { Param, UseGuards } from '@nestjs/common/decorators';
-import { Body, Patch } from '@nestjs/common/decorators/http';
+import { Body, Patch, Query } from '@nestjs/common/decorators/http';
 import { EventPattern } from '@nestjs/microservices';
 import {
     ApiBearerAuth,
@@ -22,6 +23,9 @@ import { RoleName } from 'src/iam/enums/RoleName';
 import { ActiveUserData } from 'src/iam/interfaces/active-user-data.interface';
 import { AssignDto } from './dto/assign/assign-type.dto';
 import { CreateObjectDto } from './dto/create/create-object.dto';
+import { GetDataForRechartsQueryDto } from './dto/get/get-data-for-recharts-query.dto';
+import { ObjectRechartsDataAndCountDto } from './dto/response/object-recharts-data-and-count.dto';
+import { ObjectRechartsDataTypeWorkDto } from './dto/response/object-recharts-data-typework.dto';
 import { ObjectShortDataDto } from './dto/response/object-short-data.dto';
 import { ObjectWithoutDelDto } from './dto/response/object-without-del.dto';
 import { ObjectDto } from './dto/response/object.dto';
@@ -56,14 +60,45 @@ export class ObjectsController {
         );
     }
 
-    @ApiOperation({ summary: 'Получение одного объекта' })
-    @ApiResponse({ status: HttpStatus.OK, type: ObjectDto })
-    @ApiResponse({ type: HttpException })
+    @Get('/data-recharts-progress')
+    @ApiOperation({ summary: 'Получим данные' })
+    @ApiResponse({ type: [ObjectRechartsDataAndCountDto] })
     @Roles(RoleName.ADMIN)
     @UseGuards(RolesGuard)
-    @Get('/:id')
-    getOneObject(@Param('id') id: number, @ActiveUser() user: ActiveUserData) {
-        return this.objectsService.getOneObjectById(id, user.organizationId);
+    async getDataRechartsProgress(
+        @ActiveUser() user: ActiveUserData,
+        @Query() query: GetDataForRechartsQueryDto,
+    ) {
+        return this.objectsService.getDataForRecharts(
+            user.organizationId,
+            query,
+        );
+    }
+
+    // @ApiOperation({ summary: 'Получение одного объекта' })
+    // @ApiResponse({ status: HttpStatus.OK, type: ObjectDto })
+    // @ApiResponse({ type: HttpException })
+    // @Roles(RoleName.ADMIN)
+    // @UseGuards(RolesGuard)
+    // @Get(':id')
+    // getOneObject(@Param('id') id: number, @ActiveUser() user: ActiveUserData) {
+    //     console.log('id', id);
+    //     return this.objectsService.getOneObjectById(id, user.organizationId);
+    // }
+
+    @Get('/data-recharts-type-work/:objectId')
+    @ApiOperation({ summary: 'Получим данные по типу' })
+    @ApiResponse({ type: [ObjectRechartsDataTypeWorkDto] })
+    @Roles(RoleName.ADMIN)
+    @UseGuards(RolesGuard)
+    async getDataRechartsTypeWork(
+        @Param('objectId', ParseIntPipe) objectId: number,
+        @ActiveUser() user: ActiveUserData,
+    ) {
+        return this.objectsService.getDataForRechartsTypeWorkForObjectId(
+            objectId,
+            user.organizationId,
+        );
     }
 
     @ApiOperation({ summary: 'Получение одного объекта с данными' })

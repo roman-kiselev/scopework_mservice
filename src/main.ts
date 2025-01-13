@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -6,6 +7,12 @@ import { AppModule } from './app.module';
 async function bootstrap() {
     const PORT = process.env.PORT || 4000;
     const app = await NestFactory.create(AppModule);
+    app.useGlobalPipes(
+        new ValidationPipe({
+            transform: true,
+            whitelist: true,
+        }),
+    );
     app.enableCors({
         origin: `${process.env.LINK_ORIGIN}`,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], // Укажите необходимые методы

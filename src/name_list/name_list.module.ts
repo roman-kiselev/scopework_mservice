@@ -1,5 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
+import { DatabaseModule } from 'src/database/database.module';
 import { ListNameWorkModule } from 'src/list-name-work/list-name-work.module';
 import { NameWorkModule } from 'src/name-work/name-work.module';
 import { TableAddingDataModule } from 'src/table-adding-data/table-adding-data.module';
@@ -15,6 +16,7 @@ import { NameListService } from './name_list.service';
         forwardRef(() => ListNameWorkModule),
         NameWorkModule,
         TableAddingDataModule,
+        DatabaseModule,
     ],
     exports: [NameListService, SequelizeModule.forFeature([NameList])],
 })
